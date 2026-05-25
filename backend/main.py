@@ -1,3 +1,12 @@
+import sys
+import os
+
+# Ensure the project root (truthforge/) is on sys.path so `engines.*` is importable
+# regardless of whether the server is launched from backend/ or from the project root.
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 import sentry_sdk
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
