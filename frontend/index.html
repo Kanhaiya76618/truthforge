@@ -647,6 +647,191 @@ body::before {
   .nav-actions .status-pill { display: none; }
   .app-main { padding: 16px; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CHAT VIEW
+═══════════════════════════════════════════════════════════ */
+#view-chat.active { display: flex; flex-direction: column; }
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  background: rgba(11,14,20,0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0,229,255,0.10);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.chat-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(0,229,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(11,14,20,0.8);
+  flex-shrink: 0;
+}
+.chat-header-left  { display: flex; align-items: center; gap: 12px; }
+.chat-header-right { display: flex; align-items: center; gap: 10px; }
+
+.chat-ai-avatar {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(0,229,255,0.2), rgba(124,58,237,0.2));
+  border: 1px solid rgba(0,229,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cyan);
+}
+
+.chat-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 700; color: #F1F5F9;
+}
+.chat-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: rgba(0,229,255,0.6);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px;
+}
+
+.chat-company-select {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(0,229,255,0.15);
+  border-radius: 8px; padding: 7px 12px;
+  color: #F1F5F9; font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; outline: none; cursor: pointer; transition: border-color 0.2s;
+}
+.chat-company-select:focus { border-color: rgba(0,229,255,0.4); }
+.chat-company-select option { background: #0B0E14; color: #F1F5F9; }
+
+.chat-clear-btn {
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px; color: rgba(255,255,255,0.4);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  cursor: pointer; transition: all 0.2s;
+}
+.chat-clear-btn:hover { border-color: rgba(244,63,94,0.3); color: #F43F5E; }
+
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 24px;
+  display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth;
+}
+
+.chat-message {
+  display: flex; gap: 10px; align-items: flex-start;
+  animation: fade-up 0.3s ease forwards;
+}
+.chat-message.user { flex-direction: row-reverse; }
+
+.message-avatar {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 13px; font-weight: 700;
+  font-family: 'Syne', sans-serif;
+}
+.ai-avatar {
+  background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(124,58,237,0.15));
+  border: 1px solid rgba(0,229,255,0.2); color: var(--cyan);
+}
+.user-avatar {
+  background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(16,185,129,0.2));
+  border: 1px solid rgba(59,130,246,0.2); color: #3B82F6;
+}
+
+.message-bubble {
+  max-width: 70%; padding: 12px 16px; border-radius: 12px;
+  font-size: 13px; line-height: 1.6; position: relative;
+}
+.ai-bubble {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(0,229,255,0.08); color: #E2E8F0;
+  border-top-left-radius: 4px;
+}
+.user-bubble {
+  background: rgba(0,229,255,0.08);
+  border: 1px solid rgba(0,229,255,0.15); color: #F1F5F9;
+  border-top-right-radius: 4px;
+}
+
+.message-time {
+  font-size: 9px; font-family: 'JetBrains Mono', monospace;
+  color: rgba(255,255,255,0.2); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-top: 6px;
+}
+
+.typing-indicator { display: flex; gap: 4px; align-items: center; padding: 14px 16px; }
+.typing-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--cyan); opacity: 0.4;
+  animation: typing-bounce 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing-bounce {
+  0%,100% { opacity: 0.4; transform: translateY(0); }
+  50%      { opacity: 1;   transform: translateY(-4px); }
+}
+
+.chat-suggestions {
+  padding: 12px 24px; display: flex; gap: 8px; flex-wrap: wrap;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  background: rgba(11,14,20,0.4); flex-shrink: 0;
+}
+.suggestion-chip {
+  padding: 6px 14px;
+  background: rgba(0,229,255,0.05);
+  border: 1px solid rgba(0,229,255,0.12); border-radius: 100px;
+  color: rgba(0,229,255,0.7); font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.suggestion-chip:hover {
+  background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.3);
+  color: var(--cyan); transform: translateY(-1px);
+}
+
+.chat-input-area {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(0,229,255,0.08);
+  background: rgba(11,14,20,0.8); flex-shrink: 0;
+}
+.chat-input-wrap {
+  display: flex; gap: 10px; align-items: flex-end;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(0,229,255,0.12); border-radius: 12px;
+  padding: 12px 16px; transition: border-color 0.2s;
+}
+.chat-input-wrap:focus-within {
+  border-color: rgba(0,229,255,0.35);
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.05);
+}
+.chat-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: #F1F5F9; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; line-height: 1.5; resize: none; max-height: 120px;
+}
+.chat-input::placeholder { color: rgba(255,255,255,0.2); }
+
+.chat-send-btn {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--cyan); border: none; color: #0B0E14;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.2s; box-shadow: 0 0 12px rgba(0,229,255,0.2);
+}
+.chat-send-btn:hover { transform: translateY(-1px); box-shadow: 0 0 20px rgba(0,229,255,0.35); }
+.chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.chat-input-hint {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  color: rgba(255,255,255,0.15); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-top: 8px; text-align: center;
+}
 </style>
 </head>
 <body class="dark-theme">
@@ -686,6 +871,7 @@ body::before {
       <button class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard')">DASHBOARD</button>
       <button class="nav-btn" id="nav-analyze"   onclick="switchView('analyze')">ANALYZE</button>
       <button class="nav-btn" id="nav-watchlist" onclick="switchView('watchlist')">WATCHLIST</button>
+      <button class="nav-btn" id="nav-chat"      onclick="switchView('chat')">CHAT</button>
     </div>
 
     <div class="nav-actions">
@@ -961,6 +1147,75 @@ body::before {
       </div>
     </div>
 
+    <!-- ════════ CHAT VIEW ════════ -->
+    <div class="view" id="view-chat">
+      <div class="chat-container">
+
+        <!-- Chat Header -->
+        <div class="chat-header">
+          <div class="chat-header-left">
+            <div class="chat-ai-avatar">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" stroke-width="2"/>
+                <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke-width="2"/>
+              </svg>
+            </div>
+            <div>
+              <div class="chat-title">TruthForge AI</div>
+              <div class="chat-subtitle" id="chatContext">General Mode — No company selected</div>
+            </div>
+          </div>
+          <div class="chat-header-right">
+            <select class="chat-company-select" id="chatCompanySelect" onchange="updateChatContext()">
+              <option value="">General Chat</option>
+            </select>
+            <button class="chat-clear-btn" onclick="clearChat()">Clear</button>
+          </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-message ai">
+            <div class="message-avatar ai-avatar">⬡</div>
+            <div class="message-bubble ai-bubble">
+              <p>Hello! I'm TruthForge AI. I can help you understand company analysis results, explain TruthScores, and answer questions about verified claims.</p>
+              <p style="margin-top:8px">Select a company from the dropdown above to ask specific questions, or ask me anything about TruthForge.</p>
+              <div class="message-time">Just now</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Suggested Questions -->
+        <div class="chat-suggestions" id="chatSuggestions">
+          <button class="suggestion-chip" onclick="sendSuggestion(this)">What is a TruthScore?</button>
+          <button class="suggestion-chip" onclick="sendSuggestion(this)">How does ClaimWire work?</button>
+          <button class="suggestion-chip" onclick="sendSuggestion(this)">What does greenwash risk mean?</button>
+          <button class="suggestion-chip" onclick="sendSuggestion(this)">How are scores calculated?</button>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-area">
+          <div class="chat-input-wrap">
+            <textarea
+              class="chat-input"
+              id="chatInput"
+              placeholder="Ask about a company or TruthForge..."
+              rows="1"
+              onkeydown="handleChatKey(event)"
+              oninput="autoResize(this)">
+            </textarea>
+            <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 19-7z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="chat-input-hint">Press Enter to send · Shift+Enter for new line</div>
+        </div>
+
+      </div>
+    </div>
+
   </main>
 </div><!-- /app-wrapper -->
 
@@ -974,6 +1229,7 @@ function switchView(name) {
   document.getElementById('view-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
   if (name === 'watchlist') loadWatchlist();
+  if (name === 'chat') loadCompaniesForChat();
 }
 
 /* ── Loading overlay ── */
@@ -1093,6 +1349,18 @@ async function runAnalysis() {
     const data = await res.json();
     hideLoading(interval);
     renderResults(data);
+
+    // Auto-populate chat company dropdown
+    const chatSelect = document.getElementById('chatCompanySelect');
+    if (data.company?.id) {
+      const exists = [...chatSelect.options].find(o => o.value === data.company.id);
+      if (!exists) {
+        const opt = document.createElement('option');
+        opt.value = data.company.id;
+        opt.textContent = data.company.name;
+        chatSelect.appendChild(opt);
+      }
+    }
   } catch (err) {
     hideLoading(interval);
     alert('Analysis failed: ' + err.message + '\n\nMake sure the backend server is running at localhost:8000');
@@ -1250,6 +1518,9 @@ async function loadWatchlist() {
           <div>
             <div class="watchlist-name">${item.company.name}</div>
             <div class="watchlist-url">${item.company.url}</div>
+            <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px">
+              Last analyzed: ${item.scores?.updated_at ? new Date(item.scores.updated_at).toLocaleDateString() : 'Never'}
+            </div>
           </div>
           ${score != null
             ? `<span class="score-pill ${scoreClass}">${score}</span>`
@@ -1272,6 +1543,196 @@ function loadCompanyFromWatchlist(id, name, url) {
 /* ── Enter key on inputs ── */
 document.getElementById('companyUrl').addEventListener('keydown', e => { if (e.key === 'Enter') runAnalysis(); });
 document.getElementById('companyName').addEventListener('keydown', e => { if (e.key === 'Enter') runAnalysis(); });
+
+/* ══════════════════════════════════════════════
+   CHAT
+══════════════════════════════════════════════ */
+let chatHistory          = [];
+let selectedCompanyId    = null;
+let selectedCompanyName  = null;
+let chatCompaniesLoaded  = false;
+
+async function loadCompaniesForChat() {
+  if (chatCompaniesLoaded) return;
+  try {
+    const res  = await fetch(`${API}/api/companies`);
+    const data = await res.json();
+    const select = document.getElementById('chatCompanySelect');
+    (data.companies || []).forEach(item => {
+      // avoid duplicates
+      if ([...select.options].find(o => o.value === item.company.id)) return;
+      const opt = document.createElement('option');
+      opt.value    = item.company.id;
+      opt.textContent = item.company.name;
+      select.appendChild(opt);
+    });
+    chatCompaniesLoaded = true;
+  } catch(e) {
+    console.log('Could not load companies for chat');
+  }
+}
+
+function updateChatContext() {
+  const select   = document.getElementById('chatCompanySelect');
+  const subtitle = document.getElementById('chatContext');
+  selectedCompanyId   = select.value || null;
+  selectedCompanyName = select.options[select.selectedIndex]?.text;
+
+  if (selectedCompanyId) {
+    subtitle.textContent = `Analyzing ${selectedCompanyName}`;
+    updateSuggestionsForCompany(selectedCompanyName);
+  } else {
+    subtitle.textContent = 'General Mode — No company selected';
+    resetSuggestions();
+  }
+  clearChat();
+}
+
+function updateSuggestionsForCompany(name) {
+  document.getElementById('chatSuggestions').innerHTML = `
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What is ${name}'s TruthScore?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">Is ${name} trustworthy for investment?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What are ${name}'s ESG risks?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What claims were contradicted?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">Should I use ${name} as a vendor?</button>
+  `;
+}
+
+function resetSuggestions() {
+  document.getElementById('chatSuggestions').innerHTML = `
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What is a TruthScore?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">How does ClaimWire work?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What does greenwash risk mean?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">How are scores calculated?</button>
+  `;
+}
+
+function sendSuggestion(btn) {
+  document.getElementById('chatInput').value = btn.textContent.trim();
+  sendChatMessage();
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChatMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function getTime() {
+  return new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+}
+
+function addMessage(content, role) {
+  const messages = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `chat-message ${role}`;
+  const initial = role === 'ai' ? '⬡' : 'K';
+  div.innerHTML = `
+    <div class="message-avatar ${role}-avatar">${initial}</div>
+    <div class="message-bubble ${role}-bubble">
+      ${content}
+      <div class="message-time">${getTime()}</div>
+    </div>
+  `;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function addTypingIndicator() {
+  const messages = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-message ai';
+  div.id = 'typingIndicator';
+  div.innerHTML = `
+    <div class="message-avatar ai-avatar">⬡</div>
+    <div class="message-bubble ai-bubble typing-indicator">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+  `;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+async function sendChatMessage() {
+  const input   = document.getElementById('chatInput');
+  const message = input.value.trim();
+  if (!message) return;
+
+  const btn = document.getElementById('chatSendBtn');
+  btn.disabled = true;
+  input.value  = '';
+  input.style.height = 'auto';
+
+  document.getElementById('chatSuggestions').style.display = 'none';
+  addMessage(message, 'user');
+  chatHistory.push({role: 'user', content: message});
+  addTypingIndicator();
+
+  try {
+    let res;
+    if (selectedCompanyId) {
+      res = await fetch(`${API}/api/chat/${selectedCompanyId}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message}),
+      });
+    } else {
+      res = await fetch(`${API}/api/chat/general`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message, history: chatHistory.slice(-6)}),
+      });
+    }
+
+    const data  = await res.json();
+    removeTypingIndicator();
+    const reply = data.response || 'Sorry, I could not process that.';
+    addMessage(reply, 'ai');
+    chatHistory.push({role: 'assistant', content: reply});
+
+  } catch(err) {
+    removeTypingIndicator();
+    addMessage('Connection error. Make sure the backend is running at localhost:8000.', 'ai');
+  } finally {
+    btn.disabled = false;
+    input.focus();
+  }
+}
+
+function clearChat() {
+  const messages = document.getElementById('chatMessages');
+  chatHistory = [];
+  messages.innerHTML = `
+    <div class="chat-message ai">
+      <div class="message-avatar ai-avatar">⬡</div>
+      <div class="message-bubble ai-bubble">
+        <p>Chat cleared. ${selectedCompanyName
+          ? `Ask me anything about ${selectedCompanyName}.`
+          : 'How can I help you with TruthForge?'
+        }</p>
+        <div class="message-time">${getTime()}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('chatSuggestions').style.display = 'flex';
+}
+
+window.addEventListener('load', () => {
+  loadCompaniesForChat();
+});
 </script>
 </body>
 </html>
