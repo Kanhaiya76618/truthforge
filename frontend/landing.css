@@ -1572,3 +1572,150 @@ input[type=range]::-webkit-slider-thumb {
     padding: 80px 20px 40px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NAVBAR APP LINKS
+   ══════════════════════════════════════════════════════════════════════════ */
+.nav-app-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.6);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.nav-app-link:hover {
+  color: var(--cyan);
+  background: rgba(0,229,255,0.06);
+  border-color: rgba(0,229,255,0.2);
+}
+
+.nav-app-link svg {
+  width: 13px;
+  height: 13px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .nav-app-link { display: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LAUNCH APP SECTION
+   ══════════════════════════════════════════════════════════════════════════ */
+.launch-app-section {
+  padding: 80px 60px;
+  background: linear-gradient(135deg,
+    rgba(0,229,255,0.04) 0%,
+    rgba(124,58,237,0.04) 100%);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.launch-app-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+}
+
+.launch-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--cyan);
+  margin-bottom: 12px;
+}
+
+.launch-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: #F1F5F9;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.launch-desc {
+  font-size: 14px;
+  color: #64748B;
+  line-height: 1.7;
+  max-width: 480px;
+}
+
+.launch-app-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.launch-btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 32px;
+  background: var(--cyan);
+  color: #0B0E14;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  border-radius: 10px;
+  transition: all 0.2s;
+  box-shadow: 0 0 24px rgba(0,229,255,0.25);
+  white-space: nowrap;
+}
+
+.launch-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 32px rgba(0,229,255,0.4);
+}
+
+.launch-btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.launch-btn-secondary:hover {
+  color: rgba(255,255,255,0.8);
+  border-color: rgba(255,255,255,0.15);
+}
+
+@media (max-width: 768px) {
+  .launch-app-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+  .launch-desc { margin: 0 auto; }
+  .launch-app-section { padding: 60px 24px; }
+}
