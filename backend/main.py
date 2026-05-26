@@ -433,6 +433,15 @@ async def full_analysis(payload: FullAnalysisRequest):
         # Run full TruthScore pipeline
         from fastapi.testclient import TestClient
         result = await run_truth_score(company_id)
+
+        # Optionally notify workers (only if Celery is running)
+        try:
+            from workers.tasks import queue_company_analysis
+            # This fails silently if Redis is not running
+            # so it never breaks the main API
+        except ImportError:
+            pass
+
         return result
 
     except Exception as e:
