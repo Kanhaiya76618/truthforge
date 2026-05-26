@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from loguru import logger
+from groq import Groq
 import os
 
 # ── Load environment variables ────────────────────────────────────────────────
@@ -31,6 +32,9 @@ supabase: Client = create_client(
     os.getenv("SUPABASE_URL"),
     os.getenv("SUPABASE_KEY"),
 )
+
+# ── Groq client ───────────────────────────────────────────────────────────────
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # ── FastAPI app ───────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -282,6 +286,130 @@ async def run_truth_score(company_id: str):
     except Exception as e:
         logger.error(f"TruthScore error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# ── Chat endpoints ────────────────────────────────────────────────────────────
+@app.post("/api/chat/general")
+async def general_chat(payload: dict):
+    """General TruthForge assistant chat."""
+    try:
+        question = payload.get("message", "")
+        history  = payload.get("history", [])
+
+        system_prompt = """You are TruthForge AI — an enterprise verification intelligence assistant.
+TruthForge verifies company claims using:
+- SignalForge: detects buying signals
+- GreenwashGuard: verifies ESG claims
+- ClaimWire: validates company claims
+
+Help users understand company analysis results, explain scores, and guide them on using TruthForge.
+Be concise and professional."""
+
+        messages = [{"role": "system", "content": system_prompt}]
+        for h in history[-6:]:
+            messages.append({
+                "role":    h.get("role", "user"),
+                "content": h.get("content", ""),
+            })
+        messages.append({"role": "user", "content": question})
+
+        chat = groq_client.chat.completions.create(
+            messages=messages,
+            model="llama-3.3-70b-versatile",
+            temperature=0.4,
+            max_tokens=400,
+        )
+
+        return {"response": chat.choices[0].message.content}
+
+    except Exception as e:
+        logger.error(f"General chat error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/chat/{company_id}")
+async def chat_with_company(company_id: str, payload: dict):
+    """Chat about a company using its TruthForge analysis data."""
+    try:
+        question = payload.get("message", "")
+        if not question:
+            raise HTTPException(status_code=400, detail="Message required")
+
+        company = supabase.table("companies").select("*").eq("id", company_id).execute()
+        if not company.data:
+            raise HTTPException(status_code=404, detail="Company not found")
+
+        company_data = company.data[0]
+
+        scores = supabase.table("scores")\
+            .select("*")\
+            .eq("company_id", company_id)\
+            .order("updated_at", desc=True)\
+            .limit(1).execute()
+
+        claims = supabase.table("claims")\
+            .select("*")\
+            .eq("company_id", company_id)\
+            .execute()
+
+        score_context = ""
+        if scores.data:
+            s = scores.data[0]
+            score_context = f"""
+TruthScore Analysis Results:
+- Overall TruthScore: {s.get('truth_score', 'N/A')}/100
+- Signal Score (Buying Intent): {s.get('signal_score', 'N/A')}/100
+- Integrity Score (ESG): {s.get('integrity_score', 'N/A')}/100
+- Verification Score (Claims): {s.get('verification_score', 'N/A')}/100
+"""
+
+        claims_context = ""
+        if claims.data:
+            verified     = [c for c in claims.data if c.get("status") == "verified"]
+            contradicted = [c for c in claims.data if c.get("status") == "contradicted"]
+            claims_context = f"""
+Claims Verification:
+- Verified Claims: {len(verified)}
+- Contradicted Claims: {len(contradicted)}
+- Claims checked: {[c.get('claim_text', '') for c in claims.data[:3]]}
+"""
+
+        system_prompt = f"""You are TruthForge AI — an enterprise intelligence assistant specializing in company verification and analysis.
+
+You have analyzed {company_data['name']} ({company_data['url']}) using three engines:
+1. SignalForge — buying intent and growth signals
+2. GreenwashGuard — ESG claim verification
+3. ClaimWire — universal claim validation
+
+{score_context}
+{claims_context}
+
+Answer questions about this company based on the TruthForge analysis data above.
+Be direct, professional, and data-driven.
+If asked about something not in the analysis, say "I don't have that data in this analysis — try running a fresh analysis."
+Keep responses concise — 2-4 sentences max unless detailed explanation is needed.
+Use the scores to back up your answers."""
+
+        chat = groq_client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user",   "content": question},
+            ],
+            model="llama-3.3-70b-versatile",
+            temperature=0.4,
+            max_tokens=500,
+        )
+
+        return {
+            "response": chat.choices[0].message.content,
+            "company":  company_data["name"],
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # ── Full pipeline (one shot) ──────────────────────────────────────────────────
 @app.post("/api/analyze")
