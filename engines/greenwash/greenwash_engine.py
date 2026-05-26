@@ -141,7 +141,9 @@ Extract up to 6 most specific claims. Focus on measurable claims like:
 - X% renewable energy
 - X% women in leadership
 - ISO/certification claims
-- Specific emissions reduction targets"""
+- Specific emissions reduction targets
+
+Note: Only extract claims the company actively makes about itself. Do not invent claims."""
 
     try:
         chat = groq_client.chat.completions.create(
@@ -223,10 +225,15 @@ Return ONLY valid JSON (no markdown):
 }}
 
 Scoring guide:
-- 80-100: Strong ESG integrity, claims well supported
-- 60-79: Moderate integrity, some gaps
-- 40-59: Significant gaps between claims and evidence
-- 0-39: High greenwashing risk, major contradictions found"""
+- 85-100: Verified ESG claims with strong evidence, no significant controversies
+- 70-84: Good ESG integrity, minor gaps or unverified claims but no major contradictions
+- 55-69: Moderate integrity, some unverified claims, possible minor controversies
+- 40-54: Significant gaps, several unverified claims, notable controversies found
+- 0-39: High greenwash risk, claims contradicted by evidence, major controversies
+
+Important: Major tech companies like Microsoft, Google, Apple with published sustainability
+reports and third-party verified ESG scores should generally score 65-85 unless specific
+contradictions are found. Oil/gas companies with greenwashing lawsuits should score 30-50."""
 
     try:
         chat = groq_client.chat.completions.create(
