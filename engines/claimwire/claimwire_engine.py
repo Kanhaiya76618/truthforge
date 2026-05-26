@@ -16,6 +16,7 @@ Output: Verification Score (0-100) with per-claim status
 Status: Verified / Partial / Contradicted / Unverifiable
 """
 
+import asyncio
 import os
 import sys
 import json
@@ -311,12 +312,14 @@ async def verify_claims(company: Dict) -> Dict:
         + str([c.get("claim", "")[:60] for c in claims])
     )
 
-    # Step 3: Verify each claim (limit to 5 to save API credits)
-    verified_claims = []
-    for claim in claims[:5]:
-        result = await verify_single_claim(company_name, claim)
-        verified_claims.append(result)
-        logger.info(f"Claim: '{claim['claim'][:50]}...' → {result['status']}")
+    # Step 3: Verify all claims in parallel (limit to 5 to save API credits)
+    verification_tasks = [
+        verify_single_claim(company_name, claim)
+        for claim in claims[:5]
+    ]
+    verified_claims = list(await asyncio.gather(*verification_tasks))
+    for vc in verified_claims:
+        logger.info(f"Claim: '{vc['claim'][:50]}...' → {vc['status']}")
 
     # Step 4: Calculate score
     verification_score = calculate_verification_score(verified_claims)

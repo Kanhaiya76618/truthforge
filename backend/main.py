@@ -7,6 +7,7 @@ _project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
+import asyncio
 import sentry_sdk
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -239,10 +240,12 @@ async def run_truth_score(company_id: str):
         company_data = company.data[0]
         logger.info(f"Starting full TruthForge analysis for {company_data['name']}")
 
-        # Run all 3 engines
-        signal_result    = await analyze_signals(company_data)
-        esg_result       = await analyze_esg(company_data)
-        claimwire_result = await verify_claims(company_data)
+        # Run all 3 engines in parallel
+        signal_result, esg_result, claimwire_result = await asyncio.gather(
+            analyze_signals(company_data),
+            analyze_esg(company_data),
+            verify_claims(company_data),
+        )
 
         # AI synthesis → TruthScore
         truth_result = await synthesize_truth_score(

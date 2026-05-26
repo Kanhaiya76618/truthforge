@@ -13,6 +13,7 @@ Signal types:
 Output: Signal Score (0-100) with evidence
 """
 
+import asyncio
 import sys
 import os
 import json
@@ -62,10 +63,12 @@ async def collect_signals(company_name: str) -> Dict:
     """Gather raw signal data from 4 Bright Data SERP searches."""
     logger.info(f"Collecting signals for {company_name}...")
 
-    funding_html = await bright_data.search_funding(company_name)
-    hiring_html  = await bright_data.search_hiring(company_name)
-    exec_html    = await bright_data.search_executive(company_name)
-    news_html    = await bright_data.search_news(company_name)
+    funding_html, hiring_html, exec_html, news_html = await asyncio.gather(
+        bright_data.search_funding(company_name),
+        bright_data.search_hiring(company_name),
+        bright_data.search_executive(company_name),
+        bright_data.search_news(company_name),
+    )
 
     return {
         "funding":   parse_serp_html(funding_html),

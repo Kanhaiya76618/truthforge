@@ -23,7 +23,7 @@ class BrightDataClient:
         if not self.api_key:
             raise ValueError("BRIGHT_DATA_API_KEY not found in environment")
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=2, max=6))
     async def search_serp(self, query: str, engine: str = "google") -> str:
         """
         Search Google/Bing via Bright Data SERP API.
@@ -43,7 +43,7 @@ class BrightDataClient:
         }
 
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.post(self.serp_url, headers=headers, json=payload)
                 response.raise_for_status()
                 logger.info(f"SERP search complete: '{query}' ({len(response.text)} chars)")
@@ -52,7 +52,7 @@ class BrightDataClient:
             logger.error(f"SERP API error for '{query}': {e}")
             raise
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    @retry(stop=stop_after_attempt(1), wait=wait_exponential(multiplier=1, min=2, max=4))
     async def unlock_url(self, url: str) -> str:
         """
         Fetch any URL via Bright Data Web Unlocker.
@@ -70,7 +70,7 @@ class BrightDataClient:
         }
 
         try:
-            async with httpx.AsyncClient(timeout=20.0) as client:
+            async with httpx.AsyncClient(timeout=8.0) as client:
                 response = await client.post(self.unlocker_url, headers=headers, json=payload)
                 response.raise_for_status()
                 logger.info(f"Web Unlocker fetched: {url} ({len(response.text)} chars)")

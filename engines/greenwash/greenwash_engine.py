@@ -13,6 +13,7 @@ Checks:
 Output: Integrity Score (0-100) with per-claim verification
 """
 
+import asyncio
 import os
 import json
 import sys
@@ -76,41 +77,28 @@ async def collect_esg_data(company_name: str, company_url: str) -> Dict:
     """Collect ESG-related data from multiple sources."""
     logger.info(f"Collecting ESG data for {company_name}...")
 
-    # Search 1: ESG/sustainability claims
-    esg_claims_html = await bright_data.search_serp(
-        f"{company_name} sustainability ESG claims carbon neutral 2024 2025"
+    # Run all 4 SERP searches in parallel
+    esg_claims_html, controversies_html, employee_html, regulatory_html = await asyncio.gather(
+        bright_data.search_serp(f"{company_name} sustainability ESG claims carbon neutral 2024 2025"),
+        bright_data.search_serp(f"{company_name} greenwashing ESG controversy criticism lawsuit"),
+        bright_data.search_serp(f"{company_name} Glassdoor employee reviews diversity inclusion workplace"),
+        bright_data.search_serp(f"{company_name} environmental certification ISO regulatory filing SEC ESG"),
     )
 
-    # Search 2: ESG controversies / greenwashing accusations
-    controversies_html = await bright_data.search_serp(
-        f"{company_name} greenwashing ESG controversy criticism lawsuit"
-    )
-
-    # Search 3: Employee reviews / DEI claims
-    employee_html = await bright_data.search_serp(
-        f"{company_name} Glassdoor employee reviews diversity inclusion workplace"
-    )
-
-    # Search 4: Regulatory / certification verification
-    regulatory_html = await bright_data.search_serp(
-        f"{company_name} environmental certification ISO regulatory filing SEC ESG"
-    )
-
-    # Try to fetch company sustainability page directly
+    # Try sustainability page once — fail fast, no retries
     sustainability_text = ""
     try:
         sustainability_url = company_url.rstrip("/") + "/sustainability"
         html = await bright_data.unlock_url(sustainability_url)
         sustainability_text = parse_html_text(html, max_chars=2000)
         logger.info(f"Fetched sustainability page for {company_name}")
-    except Exception as e:
-        logger.warning(f"Could not fetch sustainability page: {e}")
+    except Exception:
         try:
             esg_url = company_url.rstrip("/") + "/esg"
             html = await bright_data.unlock_url(esg_url)
             sustainability_text = parse_html_text(html, max_chars=2000)
         except Exception:
-            sustainability_text = "Could not access sustainability page directly"
+            sustainability_text = ""
 
     return {
         "esg_claims":       parse_serp_results(esg_claims_html),
