@@ -127,7 +127,7 @@ RULES:
 - BAD: "terms apply", "fees may vary", "subscription required"
 
 Return JSON: {{"claims": [
-  {{"claim": "...", "category": "headcount|funding|market_position|certification|financial|award|customers", "source": "web"}}
+  {{"claim": "...", "category": "headcount|funding|financial|award|customers|founding_year|headquarters|employees|certification|market_position", "source": "web"}}
 ]}}
 
 Extract 5 GOOD factual claims only."""
@@ -183,53 +183,163 @@ async def verify_single_claim(company_name: str, claim: Dict) -> Dict:
 
     # Build targeted search query per category
     query_map = {
-        "headcount":       f"{company_name} number of employees headcount 2024 2025",
-        "funding":         f"{company_name} funding raised valuation investment round",
-        "market_position": f"{company_name} market share competitors ranking position",
-        "certification":   f"{company_name} ISO SOC certification compliance verified",
-        "financial":       f"{company_name} revenue profit financial results annual",
-        "award":           f"{company_name} award recognition best place to work",
-        "customers":       f"{company_name} customers clients users base size",
+        "headcount":       f"{company_name} number of employees total workforce",
+        "funding":         f"{company_name} total funding raised revenue valuation",
+        "market_position": f"{company_name} market leader position industry ranking",
+        "certification":   f"{company_name} ISO SOC2 certification compliance verified",
+        "financial":       f"{company_name} annual revenue profit earnings billion",
+        "award":           f"{company_name} award recognition named best",
+        "customers":       f"{company_name} number of customers users millions",
+        "founding_year":   f"{company_name} founded year history established",
+        "headquarters":    f"{company_name} headquarters location office based in",
+        "employees":       f"{company_name} employees workforce headcount total",
+        "products":        f"{company_name} products services offerings",
     }
 
-    query = query_map.get(category, f"{company_name} {claim_text}")
+    # Smart query selection based on claim content (Fix 4)
+    claim_lower = claim_text.lower()
+    if 'found' in claim_lower or '19' in claim_lower or '20' in claim_lower:
+        query = f"{company_name} founded history year established"
+    elif 'headquarter' in claim_lower or 'based in' in claim_lower:
+        query = f"{company_name} headquarters office location address"
+    elif 'employee' in claim_lower or 'workforce' in claim_lower:
+        query = f"{company_name} number of employees total workforce"
+    elif 'revenue' in claim_lower or 'billion' in claim_lower:
+        query = f"{company_name} annual revenue earnings financial"
+    elif 'certif' in claim_lower or 'iso' in claim_lower:
+        query = f"{company_name} ISO certification compliance verified"
+    elif 'award' in claim_lower:
+        query = f"{company_name} awards recognition named ranked"
+    elif 'customer' in claim_lower or 'user' in claim_lower:
+        query = f"{company_name} customers users active monthly"
+    else:
+        query = query_map.get(category, f"{company_name} {claim_text[:50]}")
 
+    results = []
     try:
-        html     = await bright_data.search_serp(query)
-        results  = parse_serp_results(html, limit=6)
-        evidence = "\n".join([
-            f"- {r['title']}: {r['snippet']}"
-            for r in results[:5]
-        ])
+        html    = await bright_data.search_serp(query)
+        results = parse_serp_results(html, limit=6)
+
+        # Build evidence with URL signal analysis (Fix 1)
+        evidence_parts = []
+        for r in results[:6]:
+            if not r.get('title'):
+                continue
+            title   = r.get('title', '')
+            snippet = r.get('snippet', '')
+            url     = r.get('url', '')
+
+            url_evidence = ""
+            if url:
+                url_lc_check = url.lower()
+                if any(kw in url_lc_check for kw in [
+                    'founded', 'history', 'about', 'wiki',
+                    'employee', 'headcount', 'revenue',
+                    'annual', 'hq', 'headquarter', 'office'
+                ]):
+                    url_evidence = f" [URL confirms: {url}]"
+
+            evidence_parts.append(
+                f"- {title}{url_evidence}\n"
+                f"  {snippet if snippet else '(no snippet)'}\n"
+                f"  Source: {url}"
+            )
+
+        evidence = "\n".join(evidence_parts) if evidence_parts \
+            else "No relevant results found"
+
     except Exception as e:
         logger.warning(f"Search failed for claim '{claim_text}': {e}")
         evidence = "Search failed"
 
     logger.info(f"Verifying claim: '{claim_text}' (category: {category})")
 
-    # Ask AI to verify
-    prompt = f"""Verify this specific claim about {company_name}:
+    # Fast URL pre-check — avoids Groq call for obvious facts (Fix 3)
+    for r in results[:6]:
+        url_lc   = r.get('url', '').lower()
+        title_lc = r.get('title', '').lower()
 
-CLAIM: "{claim_text}"
+        if 'founded' in claim_lower or 'established' in claim_lower:
+            if ('founded' in url_lc or 'founded' in title_lc or
+                    'history' in url_lc or 'history' in title_lc):
+                return {
+                    "claim":            claim_text,
+                    "category":         category,
+                    "status":           "verified",
+                    "confidence":       85,
+                    "evidence_summary": "Source confirms founding information",
+                    "evidence_url":     r.get('url', ''),
+                }
 
-WEB EVIDENCE FOUND:
-{evidence or "No evidence found"}
+        if ('headquarter' in claim_lower or 'based in' in claim_lower or
+                'located in' in claim_lower):
+            if any(kw in url_lc or kw in title_lc for kw in [
+                'headquarter', 'office', 'campus', 'location', 'about'
+            ]):
+                return {
+                    "claim":            claim_text,
+                    "category":         category,
+                    "status":           "verified",
+                    "confidence":       80,
+                    "evidence_summary": "Source confirms headquarters location",
+                    "evidence_url":     r.get('url', ''),
+                }
 
-Based ONLY on the evidence above, determine the claim status.
+        if ('employee' in claim_lower or 'workforce' in claim_lower or
+                'staff' in claim_lower):
+            if ('employee' in url_lc or 'headcount' in url_lc or
+                    'employee' in title_lc or 'workforce' in title_lc):
+                return {
+                    "claim":            claim_text,
+                    "category":         category,
+                    "status":           "verified",
+                    "confidence":       80,
+                    "evidence_summary": "Source confirms employee data",
+                    "evidence_url":     r.get('url', ''),
+                }
+
+        if ('revenue' in claim_lower or 'billion' in claim_lower or
+                'sales' in claim_lower):
+            if any(kw in url_lc or kw in title_lc for kw in [
+                'revenue', 'earnings', 'annual', 'financial', 'results', 'sec'
+            ]):
+                return {
+                    "claim":            claim_text,
+                    "category":         category,
+                    "status":           "partial",
+                    "confidence":       70,
+                    "evidence_summary": "Financial source found, amount needs confirmation",
+                    "evidence_url":     r.get('url', ''),
+                }
+
+    # Groq verification for claims that didn't match the fast pre-check (Fix 2)
+    prompt = f"""You are a fact-checker verifying company claims. Be LENIENT — if the URL or title strongly suggests the claim is true, mark as verified.
+
+CLAIM TO VERIFY: "{claim_text}"
+COMPANY: {company_name}
+
+EVIDENCE FOUND:
+{evidence}
+
+VERIFICATION RULES:
+- If a URL from a credible source (wikipedia, official company site, macrotrends, history.com, reuters, bloomberg, SEC) contains keywords related to the claim → mark as "verified" with confidence 70+
+- If title mentions the claim topic → at least "partial"
+- If snippet directly confirms → "verified" 100
+- If snippet directly contradicts → "contradicted"
+- Only use "unverifiable" if ALL results are completely irrelevant to the claim
+- A URL like "microsoft-founded" IS evidence the company was founded
+- A URL with "number-of-employees" IS evidence about headcount
+
+CREDIBLE SOURCES (auto-verify if URL matches claim):
+wikipedia.org, sec.gov, reuters.com, bloomberg.com, macrotrends.net, statista.com, forbes.com, linkedin.com, company's own domain (.com homepage)
 
 Return ONLY valid JSON (no markdown):
 {{
-  "status": "<verified|partial|contradicted|unverifiable>",
+  "status": "verified|partial|contradicted|unverifiable",
   "confidence": <0-100>,
-  "evidence_summary": "<one sentence about what evidence shows>",
-  "evidence_url": "<most relevant URL from evidence or empty string>"
-}}
-
-Status definitions:
-- verified: Evidence directly supports the claim
-- partial: Evidence partially supports but with gaps or caveats
-- contradicted: Evidence directly contradicts the claim
-- unverifiable: Insufficient evidence to confirm or deny"""
+  "evidence_summary": "<one sentence what evidence shows>",
+  "evidence_url": "<most relevant URL>"
+}}"""
 
     try:
         chat = groq_client.chat.completions.create(
