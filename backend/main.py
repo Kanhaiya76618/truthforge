@@ -17,6 +17,18 @@ from dotenv import load_dotenv
 from loguru import logger
 from groq import Groq
 import os
+import socket
+import re
+
+
+def is_port_in_use(port: int) -> bool:
+    with socket.socket(
+        socket.AF_INET, socket.SOCK_STREAM
+    ) as s:
+        return s.connect_ex(
+            ('localhost', port)
+        ) == 0
+
 
 # ── Load environment variables ────────────────────────────────────────────────
 load_dotenv()
@@ -102,7 +114,7 @@ async def create_company(payload: CompanyRequest):
 async def get_companies():
     """Get all monitored companies with their latest scores."""
     try:
-        companies = supabase.table("companies").select("*").execute()
+        companies = supabase.table("companies").select("*").order("created_at", desc=True).execute()
 
         result = []
         for company in companies.data:
@@ -115,7 +127,12 @@ async def get_companies():
 
             result.append({
                 "company": company,
-                "scores": scores.data[0] if scores.data else None,
+                "scores": scores.data[0] if scores.data else {
+                    "truth_score": 0,
+                    "signal_score": 0,
+                    "integrity_score": 0,
+                    "verification_score": 0,
+                },
             })
 
         return {"companies": result}
@@ -153,7 +170,12 @@ async def get_company(company_id: str):
 
         return {
             "company": company.data[0],
-            "scores": scores.data[0] if scores.data else None,
+            "scores": scores.data[0] if scores.data else {
+                "truth_score": 0,
+                "signal_score": 0,
+                "integrity_score": 0,
+                "verification_score": 0,
+            },
             "claims": claims.data,
             "alerts": alerts.data,
         }
@@ -249,7 +271,18 @@ async def run_truth_score(company_id: str):
             analyze_signals(company_data),
             analyze_esg(company_data),
             verify_claims(company_data),
+            return_exceptions=True,
         )
+
+        if isinstance(signal_result, Exception):
+            logger.error(f"Signal engine failed: {signal_result}")
+            signal_result = {"signal_score": 0, "top_signal": "Error", "buying_intent_summary": "", "recommendation": "", "evidence": [], "total_signals_found": 0}
+        if isinstance(esg_result, Exception):
+            logger.error(f"ESG engine failed: {esg_result}")
+            esg_result = {"integrity_score": 0, "greenwash_risk": "unknown", "verified_claims": 0, "contradicted_claims": 0, "claims_found": [], "summary": "", "biggest_risk": "", "recommendation": "", "evidence": [], "total_sources_checked": 0}
+        if isinstance(claimwire_result, Exception):
+            logger.error(f"ClaimWire engine failed: {claimwire_result}")
+            claimwire_result = {"verification_score": 0, "claims_checked": 0, "status_breakdown": {}, "verified_claims": [], "overall_trust_level": "low"}
 
         # AI synthesis → TruthScore
         truth_result = await synthesize_truth_score(
@@ -415,38 +448,203 @@ Use the scores to back up your answers."""
 @app.post("/api/analyze")
 async def full_analysis(payload: FullAnalysisRequest):
     """
-    One-shot endpoint: paste a company name + URL,
-    get back a full TruthScore report in one API call.
+    One-shot endpoint: paste company name + URL,
+    ALWAYS runs fresh analysis — never returns cache.
     """
     try:
-        # Create or fetch company
-        existing = supabase.table("companies").select("*").eq("url", payload.url).execute()
+        from engines.signal.signal_engine import analyze_signals
+        from engines.greenwash.greenwash_engine import analyze_esg
+        from engines.claimwire.claimwire_engine import verify_claims
+        from engines.synthesis import synthesize_truth_score
+
+        # Basic validation
+        if not payload.name or not payload.url:
+            raise HTTPException(
+                status_code=400,
+                detail="Both company name and URL required"
+            )
+
+        if not payload.url.startswith("http"):
+            raise HTTPException(
+                status_code=400,
+                detail="URL must start with http:// or https://"
+            )
+
+        # Validate name matches URL domain
+        url_clean = payload.url.lower().strip()
+        name_clean = payload.name.lower().strip()
+
+        domain_match = re.search(
+            r'https?://(?:www\.)?([^/\.]+)',
+            url_clean
+        )
+
+        if not domain_match:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "INVALID_URL",
+                    "message": "Please enter a valid URL starting with https://",
+                    "example": "https://tesla.com"
+                }
+            )
+
+        domain = domain_match.group(1).lower()
+
+        name_words = re.findall(r'[a-z]+', name_clean)
+        match_found = False
+        for word in name_words:
+            if len(word) >= 3:
+                if word in domain or domain in word:
+                    match_found = True
+                    break
+
+        if not match_found:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "NAME_URL_MISMATCH",
+                    "message": (
+                        f"Company name '{payload.name}' does not match "
+                        f"URL domain '{domain}'. Please make sure the "
+                        f"name and URL belong to the same company."
+                    ),
+                    "example": (
+                        f"For {payload.url}, use name "
+                        f"'{domain.capitalize()}'"
+                    )
+                }
+            )
+
+        logger.info(
+            f"Validation passed: '{payload.name}' "
+            f"matches domain '{domain}'"
+        )
+
+        # Step 1: Create or get company from DB
+        existing = supabase.table("companies")\
+            .select("*")\
+            .eq("url", payload.url)\
+            .execute()
+
         if existing.data:
             company_id = existing.data[0]["id"]
+            # Update name if it changed
+            if existing.data[0]["name"] != payload.name:
+                supabase.table("companies")\
+                    .update({"name": payload.name})\
+                    .eq("id", company_id)\
+                    .execute()
+                logger.info(
+                    f"Updated company name to: {payload.name}"
+                )
+            logger.info(
+                f"Company exists — running FRESH analysis: "
+                f"{payload.name}"
+            )
         else:
-            new_company = supabase.table("companies").insert({
-                "name": payload.name,
-                "url":  payload.url,
-            }).execute()
+            new_company = supabase.table("companies")\
+                .insert({
+                    "name": payload.name,
+                    "url":  payload.url,
+                }).execute()
             company_id = new_company.data[0]["id"]
+            logger.info(
+                f"New company created: {payload.name}"
+            )
 
-        # Run full TruthScore pipeline
-        from fastapi.testclient import TestClient
-        result = await run_truth_score(company_id)
+        company_data = {
+            "id":   company_id,
+            "name": payload.name,  # Always use what user typed
+            "url":  payload.url,   # Always use what user typed
+        }
 
-        # Optionally notify workers (only if Celery is running)
-        try:
-            from workers.tasks import queue_company_analysis
-            # This fails silently if Redis is not running
-            # so it never breaks the main API
-        except ImportError:
-            pass
+        # Step 2: ALWAYS run all 3 engines fresh
+        logger.info(
+            f"Starting fresh parallel analysis "
+            f"for {payload.name}"
+        )
 
-        return result
+        signal_result, esg_result, claimwire_result = \
+            await asyncio.gather(
+                analyze_signals(company_data),
+                analyze_esg(company_data),
+                verify_claims(company_data),
+                return_exceptions=True,
+            )
 
+        if isinstance(signal_result, Exception):
+            logger.error(f"Signal engine failed: {signal_result}")
+            signal_result = {"signal_score": 0, "top_signal": "Error", "buying_intent_summary": "", "recommendation": "", "evidence": [], "total_signals_found": 0}
+        if isinstance(esg_result, Exception):
+            logger.error(f"ESG engine failed: {esg_result}")
+            esg_result = {"integrity_score": 0, "greenwash_risk": "unknown", "verified_claims": 0, "contradicted_claims": 0, "claims_found": [], "summary": "", "biggest_risk": "", "recommendation": "", "evidence": [], "total_sources_checked": 0}
+        if isinstance(claimwire_result, Exception):
+            logger.error(f"ClaimWire engine failed: {claimwire_result}")
+            claimwire_result = {"verification_score": 0, "claims_checked": 0, "status_breakdown": {}, "verified_claims": [], "overall_trust_level": "low"}
+
+        # Step 3: AI synthesis
+        truth_result = await synthesize_truth_score(
+            company_data,
+            signal_result,
+            esg_result,
+            claimwire_result,
+        )
+
+        # Step 4: Save fresh scores to database
+        supabase.table("scores").insert({
+            "company_id":         company_id,
+            "signal_score":       signal_result.get(
+                                    "signal_score", 0),
+            "integrity_score":    esg_result.get(
+                                    "integrity_score", 0),
+            "verification_score": claimwire_result.get(
+                                    "verification_score", 0),
+            "truth_score":        truth_result.get(
+                                    "truth_score", 0),
+        }).execute()
+
+        logger.info(
+            f"Fresh analysis complete for {payload.name}: "
+            f"TruthScore={truth_result.get('truth_score')}"
+        )
+
+        # Step 5: Return complete result
+        return {
+            "company":            company_data,
+            "signal":             signal_result,
+            "esg":                esg_result,
+            "claimwire":          claimwire_result,
+            "truth_score":        truth_result.get(
+                                    "truth_score", 0),
+            "recommendation":     truth_result.get(
+                                    "recommendation", ""),
+            "confidence":         truth_result.get(
+                                    "confidence", 0),
+            "summary":            truth_result.get(
+                                    "summary", ""),
+            "verdict":            truth_result.get(
+                                    "verdict", "Caution Advised"),
+            "biggest_risk":       truth_result.get(
+                                    "biggest_risk", ""),
+            "biggest_strength":   truth_result.get(
+                                    "biggest_strength", ""),
+            "use_for_sales":      truth_result.get(
+                                    "use_for_sales", False),
+            "use_for_investment": truth_result.get(
+                                    "use_for_investment", False),
+            "use_for_vendor":     truth_result.get(
+                                    "use_for_vendor", False),
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Full analysis error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
 # ── Scores history ────────────────────────────────────────────────────────────
 @app.get("/api/scores/{company_id}")
@@ -495,4 +693,21 @@ async def get_all_alerts():
 # ── Run server ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+    port = int(os.getenv("APP_PORT", 8000))
+
+    logger.info(
+        f"Starting TruthForge API on port {port}"
+    )
+    logger.info(
+        "Engines: SignalForge + GreenwashGuard "
+        "+ ClaimWire + Synthesis"
+    )
+
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=port,
+        reload=True,
+        log_level="info"
+    )
