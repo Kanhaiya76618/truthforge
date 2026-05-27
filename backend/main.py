@@ -1,18 +1,8 @@
 import sys
 import os
-
-# Add project root to path so engines/ is found
-# Works both locally and on Railway
-_current_dir = os.path.dirname(os.path.abspath(__file__))
-_project_root = os.path.dirname(_current_dir)
-
-if _project_root not in sys.path:
-    sys.path.insert(0, _project_root)
-
-if _current_dir not in sys.path:
-    sys.path.insert(0, _current_dir)
-
-# Now engines/ can be imported from project root
+_dir = os.path.dirname(os.path.abspath(__file__))
+if _dir not in sys.path:
+    sys.path.insert(0, _dir)
 
 import asyncio
 import sentry_sdk
