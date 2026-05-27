@@ -1286,27 +1286,65 @@ function switchView(name) {
 
 /* ── Loading overlay ── */
 function showLoading() {
-  document.getElementById('loadingOverlay').classList.add('active');
-  const steps = ['step-signal','step-esg','step-claim','step-truth'];
-  steps.forEach(s => { const el = document.getElementById(s); el.classList.remove('active','done'); });
-  document.getElementById('step-signal').classList.add('active');
+  document.getElementById('loadingOverlay')
+    .classList.add('active');
+
+  const steps = [
+    'step-signal',
+    'step-esg',
+    'step-claim',
+    'step-truth'
+  ];
+
+  // Reset all steps
+  steps.forEach(s => {
+    const el = document.getElementById(s);
+    el.classList.remove('active', 'done');
+  });
+
+  // Start first step
+  document.getElementById(steps[0])
+    .classList.add('active');
 
   let i = 0;
+  // Advance every 20 seconds
   const interval = setInterval(() => {
-    if (i >= steps.length) { clearInterval(interval); return; }
-    document.getElementById(steps[i]).classList.remove('active');
-    document.getElementById(steps[i]).classList.add('done');
+    if (i >= steps.length) {
+      clearInterval(interval);
+      return;
+    }
+    // Mark current as done
+    document.getElementById(steps[i])
+      .classList.remove('active');
+    document.getElementById(steps[i])
+      .classList.add('done');
     i++;
-    if (i < steps.length) document.getElementById(steps[i]).classList.add('active');
-  }, 18000); // advances every 18s to match real timing
+    // Activate next step
+    if (i < steps.length) {
+      document.getElementById(steps[i])
+        .classList.add('active');
+    }
+  }, 20000);
+
   return interval;
 }
 
 function hideLoading(interval) {
   clearInterval(interval);
-  document.getElementById('loadingOverlay').classList.remove('active');
-  const steps = ['step-signal','step-esg','step-claim','step-truth'];
-  steps.forEach(s => { const el = document.getElementById(s); el.classList.remove('active'); el.classList.add('done'); });
+  document.getElementById('loadingOverlay')
+    .classList.remove('active');
+
+  const steps = [
+    'step-signal',
+    'step-esg',
+    'step-claim',
+    'step-truth'
+  ];
+  steps.forEach(s => {
+    const el = document.getElementById(s);
+    el.classList.remove('active');
+    el.classList.add('done');
+  });
 }
 
 /* ── Animate number ── */
