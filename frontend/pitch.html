@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TruthForge — Pitch Deck</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --cyan: #00E5FF; --emerald: #10B981; --amber: #F59E0B;
+      --crimson: #EF4444; --purple: #7C3AED; --bg: #0B0E14;
+    }
+    html, body { width: 100%; height: 100%; background: var(--bg); color: #E2E8F0; font-family: 'Inter', sans-serif; overflow: hidden; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--cyan), var(--emerald)); box-shadow: 0 0 8px rgba(0,229,255,0.6); transition: width 0.4s ease; z-index: 1000; }
+    #back-link { position: fixed; top: 20px; left: 24px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.12em; color: var(--cyan); text-decoration: none; z-index: 900; opacity: 0.7; transition: opacity 0.2s; }
+    #back-link:hover { opacity: 1; }
+    #slide-counter { position: fixed; top: 20px; right: 24px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.25); z-index: 900; }
+    .nav-arrow { position: fixed; bottom: 28px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(0,229,255,0.25); background: rgba(0,229,255,0.05); color: var(--cyan); font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 900; line-height: 1; }
+    .nav-arrow:hover:not(:disabled) { background: rgba(0,229,255,0.15); border-color: var(--cyan); }
+    .nav-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
+    #btn-prev { right: 80px; } #btn-next { right: 24px; }
+
+    #deck { position: relative; width: 100vw; height: 100vh; }
+    .slide { position: absolute; inset: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 68px 60px 84px; background: var(--bg); opacity: 0; pointer-events: none; transition: opacity 0.45s ease; overflow-y: auto; }
+    .slide.active { opacity: 1; pointer-events: all; }
+    .particle-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+    .si { position: relative; z-index: 1; width: 100%; max-width: 920px; display: flex; flex-direction: column; align-items: center; }
+
+    /* Typography */
+    .lbl { font-family: 'JetBrains Mono', monospace; font-size: 0.63rem; letter-spacing: 0.22em; color: var(--cyan); margin-bottom: 10px; text-transform: uppercase; }
+    .ttl { font-family: 'Syne', sans-serif; font-size: clamp(1.9rem, 3.8vw, 3rem); font-weight: 800; line-height: 1.1; text-align: center; margin-bottom: 8px; }
+    .sub { font-size: 0.92rem; color: rgba(255,255,255,0.45); text-align: center; margin-bottom: 28px; max-width: 580px; line-height: 1.6; }
+
+    /* Cards */
+    .gc { background: rgba(30,41,59,0.45); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 20px; transition: border-color 0.2s, transform 0.2s; }
+    .gc:hover { border-color: rgba(0,229,255,0.2); transform: translateY(-2px); }
+
+    /* Pills */
+    .pr { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 28px; }
+    .pl { padding: 5px 14px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.63rem; letter-spacing: 0.1em; text-transform: uppercase; }
+    .pc { background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid rgba(0,229,255,0.25); }
+    .pe { background: rgba(16,185,129,0.1); color: var(--emerald); border: 1px solid rgba(16,185,129,0.25); }
+    .pa { background: rgba(245,158,11,0.1); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+    .pp { background: rgba(124,58,237,0.1); color: #a78bfa; border: 1px solid rgba(124,58,237,0.25); }
+    .pcr { background: rgba(239,68,68,0.1); color: var(--crimson); border: 1px solid rgba(239,68,68,0.25); }
+
+    .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; width: 100%; }
+
+    /* ── S1 ── */
+    .s1logo { width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0,229,255,0.5)); margin-bottom: 18px; animation: lfloat 3s ease-in-out infinite; }
+    @keyframes lfloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .brand { font-family: 'Syne', sans-serif; font-size: clamp(3rem,7vw,5.5rem); font-weight: 800; background: linear-gradient(135deg, var(--cyan) 0%, var(--emerald) 50%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; line-height: 1; margin-bottom: 14px; text-align: center; }
+    .s1tag { font-size: 1.05rem; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 30px; max-width: 500px; line-height: 1.6; }
+    .s1cred { margin-top: 24px; font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: rgba(255,255,255,0.22); letter-spacing: 0.12em; }
+
+    /* ── S2 ── */
+    .pimpact { text-align: center; font-size: 0.8rem; color: rgba(255,255,255,0.35); margin-bottom: 22px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.06em; }
+    .pcard { background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.18); border-radius: 14px; padding: 20px; }
+    .pcard-hd { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .picon { width: 36px; height: 36px; border-radius: 9px; background: rgba(239,68,68,0.1); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .ptitle { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.14em; color: var(--crimson); }
+    .pstat { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--crimson); margin-bottom: 6px; }
+    .pdesc { font-size: 0.8rem; color: rgba(255,255,255,0.45); line-height: 1.55; margin-bottom: 12px; }
+    .ptags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .ptag { font-family: 'JetBrains Mono', monospace; font-size: 0.57rem; letter-spacing: 0.08em; padding: 3px 7px; background: rgba(239,68,68,0.08); color: rgba(239,68,68,0.65); border-radius: 4px; }
+    .bridge { margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; color: rgba(255,255,255,0.28); font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; }
+    .bline { flex: 1; max-width: 100px; height: 1px; }
+    .bl { background: linear-gradient(90deg, transparent, rgba(0,229,255,0.3)); }
+    .br2 { background: linear-gradient(90deg, rgba(0,229,255,0.3), transparent); }
+
+    /* ── S3 ── */
+    .ecard { background: rgba(30,41,59,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 18px; position: relative; overflow: hidden; }
+    .ecard::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; }
+    .esig::before { background: linear-gradient(90deg, var(--cyan), transparent); }
+    .eesg::before { background: linear-gradient(90deg, var(--emerald), transparent); }
+    .eclm::before { background: linear-gradient(90deg, var(--amber), transparent); }
+    .erow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .eico { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .ebadge { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; padding: 3px 9px; border-radius: 20px; }
+    .ename { font-family: 'JetBrains Mono', monospace; font-size: 0.67rem; letter-spacing: 0.14em; margin-bottom: 3px; }
+    .efull { font-size: 1rem; font-weight: 600; margin-bottom: 8px; }
+    .edesc { font-size: 0.78rem; color: rgba(255,255,255,0.42); line-height: 1.55; margin-bottom: 12px; }
+    .eex { background: rgba(0,0,0,0.3); border-radius: 7px; padding: 9px 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.63rem; color: rgba(255,255,255,0.38); line-height: 1.55; }
+    .hi { color: var(--cyan); }
+    .hig { color: var(--emerald); }
+    .hia { color: var(--amber); }
+
+    /* ── S4 ── */
+    .aflow { display: flex; align-items: center; width: 100%; gap: 0; margin-bottom: 20px; }
+    .anode { background: rgba(30,41,59,0.5); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 14px 12px; text-align: center; flex: 1; }
+    .anlbl { font-family: 'JetBrains Mono', monospace; font-size: 0.57rem; letter-spacing: 0.14em; margin-bottom: 5px; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+    .annm { font-size: 0.9rem; font-weight: 600; }
+    .aarr { width: 28px; color: rgba(0,229,255,0.45); font-size: 1.1rem; text-align: center; flex-shrink: 0; animation: ap 1.6s ease-in-out infinite; }
+    @keyframes ap { 0%,100%{color:rgba(0,229,255,0.3)} 50%{color:rgba(0,229,255,0.85)} }
+    .aengs { flex: 1.3; display: flex; flex-direction: column; gap: 5px; }
+    .aeng { background: rgba(30,41,59,0.5); border: 1px solid rgba(255,255,255,0.07); border-radius: 7px; padding: 7px 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.07em; }
+    .ainfra { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .achip { background: rgba(30,41,59,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 7px; padding: 7px 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: rgba(255,255,255,0.38); display: flex; align-items: center; gap: 6px; }
+    .adot { width: 6px; height: 6px; border-radius: 50%; }
+
+    /* ── S5 ── */
+    .tgrid { display: grid; grid-template-columns: repeat(4,1fr); gap: 9px; width: 100%; margin-bottom: 18px; }
+    .tcard { background: rgba(30,41,59,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 14px; text-align: center; transition: all 0.2s; }
+    .tcard:hover { border-color: rgba(0,229,255,0.2); background: rgba(0,229,255,0.03); }
+    .tci { font-size: 1.4rem; margin-bottom: 7px; }
+    .tcn { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.65); }
+    .tcr { font-size: 0.68rem; color: rgba(255,255,255,0.28); margin-top: 3px; }
+    .tstrow { display: flex; gap: 24px; justify-content: center; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.05); width: 100%; }
+    .tst { text-align: center; }
+    .tstn { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--cyan); }
+    .tstl { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.28); }
+
+    /* ── S6 ── */
+    .tl { display: flex; align-items: flex-start; width: 100%; position: relative; gap: 0; margin-bottom: 16px; }
+    .tltrack { position: absolute; top: 23px; left: 24px; right: 24px; height: 2px; background: rgba(255,255,255,0.05); z-index: 0; }
+    .tlprog { position: absolute; top: 23px; left: 24px; height: 2px; background: linear-gradient(90deg, var(--cyan), var(--emerald)); width: 0; z-index: 1; }
+    .tlstep { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; padding: 0 6px; }
+    .sdot { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; margin-bottom: 12px; border: 2px solid; background: var(--bg); }
+    .sd1{border-color:var(--cyan);color:var(--cyan)} .sd2{border-color:var(--emerald);color:var(--emerald)} .sd3{border-color:var(--amber);color:var(--amber)} .sd4{border-color:#a78bfa;color:#a78bfa}
+    .stlbl { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 0.14em; color: var(--cyan); text-transform: uppercase; text-align: center; margin-bottom: 4px; }
+    .stnm { font-weight: 600; font-size: 0.88rem; text-align: center; margin-bottom: 7px; }
+    .stsnip { background: rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 8px 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.57rem; color: rgba(255,255,255,0.33); line-height: 1.5; width: 100%; text-align: left; }
+    .kw{color:#a78bfa} .fn{color:var(--cyan)} .sv{color:var(--emerald)}
+
+    /* ── S7 ── */
+    .bdhd { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+    .bdbadge { padding: 5px 14px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.28); border-radius: 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.63rem; color: var(--emerald); letter-spacing: 0.1em; }
+    .bdcard { background: rgba(30,41,59,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 11px; padding: 14px 16px; display: grid; grid-template-columns: 38px 1fr auto; align-items: center; gap: 12px; transition: border-color 0.2s; }
+    .bdcard:hover { border-color: rgba(0,229,255,0.2); }
+    .bdico { width: 38px; height: 38px; border-radius: 9px; background: rgba(0,229,255,0.07); display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .bdname { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; color: var(--cyan); margin-bottom: 3px; }
+    .bddesc { font-size: 0.76rem; color: rgba(255,255,255,0.38); line-height: 1.45; }
+    .bdcalls { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; padding: 4px 9px; background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.12); border-radius: 5px; color: rgba(0,229,255,0.65); white-space: nowrap; }
+
+    /* ── S8 ── */
+    .rlhd { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; justify-content: center; }
+    .livdot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); animation: lb 1.2s ease-in-out infinite; }
+    @keyframes lb { 0%,100%{opacity:1;box-shadow:0 0 6px var(--emerald)} 50%{opacity:0.3;box-shadow:none} }
+    .livlbl { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.14em; color: var(--emerald); }
+    .rtwrap { width: 100%; overflow: hidden; border-radius: 12px; background: rgba(30,41,59,0.45); border: 1px solid rgba(255,255,255,0.06); }
+    #results-table { width: 100%; border-collapse: collapse; display: none; }
+    #results-table thead tr { border-bottom: 1px solid rgba(255,255,255,0.07); }
+    #results-table th { padding: 10px 16px; text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; color: rgba(255,255,255,0.28); text-transform: uppercase; }
+    #results-table td { padding: 13px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.84rem; }
+    #results-table tr:last-child td { border-bottom: none; }
+    .rfml { margin-top: 14px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: rgba(255,255,255,0.18); letter-spacing: 0.07em; }
+    #results-loading { text-align: center; padding: 36px; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: rgba(255,255,255,0.28); }
+    .lspin { display: inline-block; width: 22px; height: 22px; border: 2px solid rgba(0,229,255,0.15); border-top-color: var(--cyan); border-radius: 50%; animation: sp 0.8s linear infinite; margin-bottom: 10px; display: block; margin: 0 auto 10px; }
+    @keyframes sp { to{transform:rotate(360deg)} }
+
+    /* ── S9 ── */
+    .ucgrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 11px; width: 100%; margin-bottom: 12px; }
+    .uccard { background: rgba(30,41,59,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; transition: all 0.2s; }
+    .uccard:hover { border-color: rgba(0,229,255,0.2); transform: translateY(-2px); }
+    .ucico { font-size: 1.5rem; margin-bottom: 8px; }
+    .uctitle { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.12em; color: var(--cyan); margin-bottom: 5px; }
+    .ucdesc { font-size: 0.76rem; color: rgba(255,255,255,0.42); line-height: 1.5; }
+
+    /* ── S10 ── */
+    .watermark { position: absolute; font-family: 'Syne', sans-serif; font-size: 17vw; font-weight: 800; color: rgba(255,255,255,0.03); letter-spacing: -0.03em; user-select: none; pointer-events: none; z-index: 0; white-space: nowrap; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+    .s10disc { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: rgba(255,255,255,0.3); margin-top: 8px; letter-spacing: 0.08em; }
+    .s10disc span { color: var(--cyan); }
+    .s10stats { display: flex; gap: 32px; margin-top: 28px; }
+    .s10s { text-align: center; }
+    .s10sn { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--cyan), var(--emerald)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .s10sl { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; color: rgba(255,255,255,0.22); }
+
+    @media(max-width:768px){
+      .slide{padding:60px 18px 78px}
+      .g3,.tgrid,.ucgrid{grid-template-columns:1fr}
+      .aflow{flex-direction:column}
+      .tl{flex-direction:column} .tltrack,.tlprog{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<a href="landing.html" id="back-link">← TRUTHFORGE</a>
+<div id="slide-counter">1 / 10</div>
+<button class="nav-arrow" id="btn-prev" onclick="changeSlide(-1)">‹</button>
+<button class="nav-arrow" id="btn-next" onclick="changeSlide(1)">›</button>
+
+<div id="deck">
+
+  <!-- ══════════════════ SLIDE 1: TITLE ══════════════════ -->
+  <section class="slide active" id="slide-1">
+    <canvas class="particle-canvas" id="pcv1"></canvas>
+    <div class="si" style="align-items:center">
+      <img src="logo.png" alt="TruthForge" class="s1logo">
+      <h1 class="brand">TRUTHFORGE</h1>
+      <p class="s1tag">AI-powered enterprise verification intelligence.<br>Real-time trust scoring for the companies that matter.</p>
+      <div class="pr">
+        <span class="pl pc">HACKATHON 2025</span>
+        <span class="pl pe">BRIGHT DATA MCP</span>
+        <span class="pl pp">AI VERIFICATION</span>
+        <span class="pl pa">GROQ LLAMA 3.3</span>
+      </div>
+      <p class="s1cred">By Kanhaiya Kumar</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════ SLIDE 2: PROBLEM ══════════════════ -->
+  <section class="slide" id="slide-2">
+    <div class="si">
+      <p class="lbl">THE PROBLEM</p>
+      <h2 class="ttl">Enterprises Are Flying <span style="color:var(--crimson)">Blind</span></h2>
+      <p class="pimpact">$4.7T in enterprise decisions made annually with unverified data</p>
+      <div class="g3" style="margin-bottom:18px">
+        <div class="pcard">
+          <div class="pcard-hd"><div class="picon">⚠️</div><span class="ptitle">BLIND TRUST RISK</span></div>
+          <div class="pstat">83%</div>
+          <p class="pdesc">of procurement teams rely on self-reported sustainability metrics with no independent verification.</p>
+          <div class="ptags"><span class="ptag">PROCUREMENT</span><span class="ptag">SUPPLY CHAIN</span><span class="ptag">DUE DILIGENCE</span></div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-hd"><div class="picon">🌿</div><span class="ptitle">GREENWASHING EPIDEMIC</span></div>
+          <div class="pstat">$1.2T</div>
+          <p class="pdesc">annually lost to greenwashing fraud. 40% of ESG claims found misleading by EU regulators in 2024.</p>
+          <div class="ptags"><span class="ptag">ESG FRAUD</span><span class="ptag">COMPLIANCE</span><span class="ptag">RISK</span></div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-hd"><div class="picon">📊</div><span class="ptitle">DATA QUALITY CRISIS</span></div>
+          <div class="pstat">67%</div>
+          <p class="pdesc">of financial analysts distrust third-party ratings. Manual verification takes 40+ hours per company.</p>
+          <div class="ptags"><span class="ptag">DATA QUALITY</span><span class="ptag">ANALYST HOURS</span><span class="ptag">COST</span></div>
+        </div>
+      </div>
+      <div class="bridge">
+        <div class="bline bl"></div>
+        <span>TruthForge closes this gap with real-time AI verification</span>
+        <div class="bline br2"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ SLIDE 3: INTRODUCING TRUTHFORGE ══════════════════ -->
+  <section class="slide" id="slide-3">
+    <div class="si">
+      <p class="lbl">THE SOLUTION</p>
+      <h2 class="ttl">Three Engines. One <span style="color:var(--cyan)">Truth Score</span>.</h2>
+      <p class="sub">Each engine independently analyzes a company, powered by Bright Data + Groq AI</p>
+      <div class="g3">
+        <div class="ecard esig">
+          <div class="erow">
+            <div class="eico" style="background:rgba(0,229,255,0.1)">📡</div>
+            <span class="ebadge" style="background:rgba(0,229,255,0.1);color:var(--cyan);border:1px solid rgba(0,229,255,0.2)">35% WEIGHT</span>
+          </div>
+          <p class="ename" style="color:var(--cyan)">SIGNALFORGE</p>
+          <p class="efull">Market Signal Engine</p>
+          <p class="edesc">Scrapes news, press releases, analyst reports. Detects sentiment shifts, controversy clusters, and reputational risk signals.</p>
+          <div class="eex"><span class="hi">Tesla</span> signal_score = <span class="hi">74</span><br><span style="color:rgba(255,255,255,0.22)">// 47 articles, 3 controversies</span></div>
+        </div>
+        <div class="ecard eesg">
+          <div class="erow">
+            <div class="eico" style="background:rgba(16,185,129,0.1)">🌿</div>
+            <span class="ebadge" style="background:rgba(16,185,129,0.1);color:var(--emerald);border:1px solid rgba(16,185,129,0.2)">35% WEIGHT</span>
+          </div>
+          <p class="ename" style="color:var(--emerald)">GREENWASHGUARD</p>
+          <p class="efull">ESG Integrity Engine</p>
+          <p class="edesc">Validates ESG claims against disclosed reports, third-party audits, and regulatory filings. Flags discrepancies.</p>
+          <div class="eex"><span class="hig">Google</span> esg_score = <span class="hig">72</span><br><span style="color:rgba(255,255,255,0.22)">// carbon neutrality verified</span></div>
+        </div>
+        <div class="ecard eclm">
+          <div class="erow">
+            <div class="eico" style="background:rgba(245,158,11,0.1)">🔍</div>
+            <span class="ebadge" style="background:rgba(245,158,11,0.1);color:var(--amber);border:1px solid rgba(245,158,11,0.2)">30% WEIGHT</span>
+          </div>
+          <p class="ename" style="color:var(--amber)">CLAIMWIRE</p>
+          <p class="efull">Claim Verification Engine</p>
+          <p class="edesc">Cross-references specific corporate claims against web sources, fact-checkers, and public data. Returns confidence scores.</p>
+          <div class="eex"><span class="hia">Microsoft</span> claims_score = <span class="hia">67</span><br><span style="color:rgba(255,255,255,0.22)">// 12 claims, 9 verified</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ SLIDE 4: ARCHITECTURE ══════════════════ -->
+  <section class="slide" id="slide-4">
+    <div class="si">
+      <p class="lbl">UNDER THE HOOD</p>
+      <h2 class="ttl">System <span style="color:var(--cyan)">Architecture</span></h2>
+      <p class="sub">Async-parallel execution with Bright Data as the data backbone</p>
+      <div class="aflow" style="margin-bottom:18px">
+        <div class="anode" style="flex:0.75">
+          <div class="anlbl">INPUT</div>
+          <div class="annm" style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:rgba(255,255,255,0.55)">Company<br>Name</div>
+        </div>
+        <div class="aarr">→</div>
+        <div class="anode" style="background:rgba(0,229,255,0.04);border-color:rgba(0,229,255,0.14)">
+          <div class="anlbl" style="color:var(--cyan)">DATA LAYER</div>
+          <div class="annm" style="color:var(--cyan)">Bright Data</div>
+          <div style="font-size:0.67rem;color:rgba(255,255,255,0.28);margin-top:5px">SERP · Scraper · Unlocker<br>MCP · Web API</div>
+        </div>
+        <div class="aarr">→</div>
+        <div class="aengs">
+          <div class="aeng" style="color:var(--cyan);border-color:rgba(0,229,255,0.14)">📡 SignalForge</div>
+          <div class="aeng" style="color:var(--emerald);border-color:rgba(16,185,129,0.14)">🌿 GreenwashGuard</div>
+          <div class="aeng" style="color:var(--amber);border-color:rgba(245,158,11,0.14)">🔍 ClaimWire</div>
+        </div>
+        <div class="aarr">→</div>
+        <div class="anode" style="background:rgba(124,58,237,0.04);border-color:rgba(124,58,237,0.14)">
+          <div class="anlbl" style="color:#a78bfa">AI LAYER</div>
+          <div class="annm" style="color:#a78bfa">Groq<br>Llama 3.3</div>
+        </div>
+        <div class="aarr">→</div>
+        <div class="anode" style="flex:0.75;background:rgba(16,185,129,0.04);border-color:rgba(16,185,129,0.14)">
+          <div class="anlbl" style="color:var(--emerald)">OUTPUT</div>
+          <div class="annm" style="color:var(--emerald);font-family:'JetBrains Mono',monospace;font-size:0.8rem">Truth<br>Score</div>
+        </div>
+      </div>
+      <div class="ainfra">
+        <div class="achip"><div class="adot" style="background:var(--cyan)"></div>FastAPI + Uvicorn</div>
+        <div class="achip"><div class="adot" style="background:var(--emerald)"></div>Supabase PostgreSQL</div>
+        <div class="achip"><div class="adot" style="background:var(--amber)"></div>Celery + Redis</div>
+        <div class="achip"><div class="adot" style="background:#a78bfa"></div>asyncio.gather()</div>
+        <div class="achip"><div class="adot" style="background:var(--crimson)"></div>Python 3.11</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ SLIDE 5: TECH STACK ══════════════════ -->
+  <section class="slide" id="slide-5">
+    <div class="si">
+      <p class="lbl">TECHNOLOGY</p>
+      <h2 class="ttl">Production-Ready <span style="color:var(--cyan)">Stack</span></h2>
+      <p class="sub" style="margin-bottom:20px">Every tool chosen for speed, reliability, and scale</p>
+      <div class="tgrid">
+        <div class="tcard"><div class="tci">⚡</div><div class="tcn">BRIGHT DATA</div><div class="tcr">Data infrastructure</div></div>
+        <div class="tcard"><div class="tci">🤖</div><div class="tcn">GROQ</div><div class="tcr">LLM inference</div></div>
+        <div class="tcard"><div class="tci">🚀</div><div class="tcn">FASTAPI</div><div class="tcr">REST API layer</div></div>
+        <div class="tcard"><div class="tci">🐘</div><div class="tcn">SUPABASE</div><div class="tcr">PostgreSQL database</div></div>
+        <div class="tcard"><div class="tci">🌿</div><div class="tcn">CELERY</div><div class="tcr">Task queue</div></div>
+        <div class="tcard"><div class="tci">📮</div><div class="tcn">REDIS</div><div class="tcr">Message broker</div></div>
+        <div class="tcard"><div class="tci">🔗</div><div class="tcn">HTTPX</div><div class="tcr">Async HTTP client</div></div>
+        <div class="tcard"><div class="tci">🐍</div><div class="tcn">PYTHON 3.11</div><div class="tcr">Runtime</div></div>
+        <div class="tcard"><div class="tci">🔐</div><div class="tcn">LLAMA 3.3-70B</div><div class="tcr">AI model</div></div>
+        <div class="tcard"><div class="tci">📊</div><div class="tcn">PYDANTIC</div><div class="tcr">Data validation</div></div>
+        <div class="tcard"><div class="tci">🌐</div><div class="tcn">BEAUTIFULSOUP</div><div class="tcr">HTML parsing</div></div>
+        <div class="tcard"><div class="tci">📡</div><div class="tcn">SLACK API</div><div class="tcr">Alerts</div></div>
+      </div>
+      <div class="tstrow">
+        <div class="tst"><div class="tstn">3</div><div class="tstl">AI ENGINES</div></div>
+        <div class="tst"><div class="tstn">5</div><div class="tstl">BD TOOLS</div></div>
+        <div class="tst"><div class="tstn">&lt;30s</div><div class="tstl">ANALYSIS TIME</div></div>
+        <div class="tst"><div class="tstn">100%</div><div class="tstl">ASYNC</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ SLIDE 6: HOW IT WORKS ══════════════════ -->
+  <section class="slide" id="slide-6">
+    <div class="si">
+      <p class="lbl">WORKFLOW</p>
+      <h2 class="ttl">From Input to <span style="color:var(--emerald)">Insight</span></h2>
+      <p class="sub" style="margin-bottom:26px">Four steps, fully automated, under 30 seconds</p>
+      <div class="tl">
+        <div class="tltrack"></div>
+        <div class="tlprog" id="tlp"></div>
+        <div class="tlstep">
+          <div class="sdot sd1">01</div>
+          <p class="stlbl">INGEST</p>
+          <p class="stnm">Submit Company</p>
+          <div class="stsnip"><span class="kw">POST</span> /api/analyze<br>{ <span class="sv">"name"</span>: <span class="sv">"Tesla"</span> }</div>
+        </div>
+        <div class="tlstep">
+          <div class="sdot sd2">02</div>
+          <p class="stlbl">FETCH</p>
+          <p class="stnm">Bright Data Scrape</p>
+          <div class="stsnip"><span class="fn">gather</span>(<br>&nbsp;&nbsp;serp_search(),<br>&nbsp;&nbsp;web_scraper()<br>)</div>
+        </div>
+        <div class="tlstep">
+          <div class="sdot sd3">03</div>
+          <p class="stlbl">ANALYZE</p>
+          <p class="stnm">3 Engines in Parallel</p>
+          <div class="stsnip"><span class="fn">asyncio.gather</span>(<br>&nbsp;&nbsp;signal(), esg(),<br>&nbsp;&nbsp;claims()<br>)</div>
+        </div>
+        <div class="tlstep">
+          <div class="sdot sd4">04</div>
+          <p class="stlbl">SCORE</p>
+          <p class="stnm">TruthScore + Store</p>
+          <div class="stsnip"><span class="kw">score</span> = sig*<span class="sv">.35</span><br>&nbsp;&nbsp;&nbsp;+ esg*<span class="sv">.35</span><br>&nbsp;&nbsp;&nbsp;+ clm*<span class="sv">.30</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ SLIDE 7: BRIGHT DATA ══════════════════ -->
+  <section class="slide" id="slide-7">
+    <div class="si">
+      <div class="bdhd">
+        <p class="lbl" style="margin-bottom:0">INFRASTRUCTURE PARTNER</p>
+        <span class="bdbadge">$250 CREDIT AWARDED</span>
+      </div>
+      <h2 class="ttl" style="margin-bottom:8px">Bright Data <span style="color:var(--cyan)">Powers</span> Everything</h2>
+      <p class="sub" style="margin-bottom:18px">Five tools working in concert to feed all three engines</p>
+      <div style="display:flex;flex-direction:column;gap:9px;width:100%">
+        <div class="bdcard">
+          <div class="bdico">🔎</div>
+          <div><div class="bdname">SERP API</div><div class="bddesc">Google search results for news, controversies, analyst coverage. Primary discovery layer for SignalForge.</div></div>
+          <div class="bdcalls">~15 calls/analysis</div>
+        </div>
+        <div class="bdcard">
+          <div class="bdico">🔓</div>
+          <div><div class="bdname">WEB UNLOCKER</div><div class="bddesc">Bypasses bot protection on corporate sites, regulatory filings, investor pages. Used by all 3 engines.</div></div>
+          <div class="bdcalls">~20 calls/analysis</div>
+        </div>
+        <div class="bdcard">
+          <div class="bdico">🌐</div>
+          <div><div class="bdname">SCRAPING BROWSER</div><div class="bddesc">JavaScript-rendered pages: ESG dashboards, dynamic reports, interactive investor portals.</div></div>
+          <div class="bdcalls">~8 calls/analysis</div>
+        </div>
+        <div class="bdcard">
+          <div class="bdico">🤖</div>
+          <div><div class="bdname">MCP SERVER</div><div class="bddesc">Direct AI-to-Bright Data integration for real-time enrichment queries within the Groq analysis pipeline.</div></div>
+          <div class="bdcalls">~5 calls/analysis</div>
+        </div>
+        <div class="bdcard">
+          <div class="bdico">📋</div>
+          <div><div class="bdname">WEB SCRAPER API</div><div class="bddesc">Structured extraction of financial reports, sustainability PDFs, and press release databases.</div></div>
+          <div class="bdcalls">~10 calls/analysis</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ SLIDE 8: LIVE RESULTS ══════════════════ -->
+  <section class="slide" id="slide-8">
+    <div class="si">
+      <p class="lbl">LIVE DATA</p>
+      <h2 class="ttl">Real-Time <span style="color:var(--emerald)">Results</span></h2>
+      <div class="rlhd">
+        <div class="livdot"></div>
+        <span class="livlbl">FETCHING FROM LIVE API — localhost:8000</span>
+      </div>
+      <div class="rtwrap" style="width:100%">
+        <div id="results-loading">
+          <div class="lspin"></div>
+          <p>Connecting to TruthForge API…</p>
+        </div>
+        <table id="results-table">
+          <thead><tr>
+            <th>COMPANY</th><th>SIGNAL</th><th>ESG</th><th>CLAIMS</th><th>TRUTHSCORE</th><th>VERDICT</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="rfml">TruthScore = (Signal × 0.35) + (ESG × 0.35) + (Claims × 0.30)</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════ SLIDE 9: USE CASES ══════════════════ -->
+  <section class="slide" id="slide-9">
+    <div class="si">
+      <p class="lbl">MARKET OPPORTUNITY</p>
+      <h2 class="ttl">Who <span style="color:var(--amber)">Buys</span> TruthForge?</h2>
+      <p class="sub" style="margin-bottom:18px">Five high-value enterprise verticals with immediate ROI</p>
+      <div class="ucgrid" style="margin-bottom:12px">
+        <div class="uccard">
+          <div class="ucico">💼</div>
+          <div class="uctitle">SALES TEAMS</div>
+          <div class="ucdesc">Verify prospects before outreach. Know their ESG posture, recent controversies, and financial signals.</div>
+        </div>
+        <div class="uccard">
+          <div class="ucico">🏦</div>
+          <div class="uctitle">FUND MANAGERS</div>
+          <div class="ucdesc">ESG fund compliance verification. Screen portfolio companies for greenwashing risk automatically.</div>
+        </div>
+        <div class="uccard">
+          <div class="ucico">⚖️</div>
+          <div class="uctitle">COMPLIANCE TEAMS</div>
+          <div class="ucdesc">Continuous monitoring for regulatory changes and discrepancies in corporate filings.</div>
+        </div>
+        <div class="uccard">
+          <div class="ucico">🤝</div>
+          <div class="uctitle">PROCUREMENT</div>
+          <div class="ucdesc">Third-party supplier risk assessment. Replace manual 40-hour processes with automated scoring.</div>
+        </div>
+        <div class="uccard">
+          <div class="ucico">📰</div>
+          <div class="uctitle">JOURNALISTS</div>
+          <div class="ucdesc">Investigative claim verification. Cross-reference corporate statements with public data in seconds.</div>
+        </div>
+        <div class="uccard" style="background:rgba(245,158,11,0.04);border-color:rgba(245,158,11,0.15)">
+          <div class="ucico">📈</div>
+          <div class="uctitle" style="color:var(--amber)">TOTAL MARKET</div>
+          <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--amber);margin-bottom:4px">$18B+</div>
+          <div class="ucdesc">ESG data & analytics market by 2028 (CAGR 17%)</div>
+        </div>
+      </div>
+      <div class="pr" style="margin-bottom:0">
+        <span class="pl pc">API-FIRST</span>
+        <span class="pl pe">SAAS MODEL</span>
+        <span class="pl pa">ENTERPRISE SEATS</span>
+        <span class="pl pp">WHITE-LABEL</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ SLIDE 10: THANK YOU ══════════════════ -->
+  <section class="slide" id="slide-10">
+    <canvas class="particle-canvas" id="pcv10"></canvas>
+    <div class="watermark">TRUTHFORGE</div>
+    <div class="si" style="align-items:center">
+      <img src="logo.png" alt="TruthForge" class="s1logo" style="width:88px;height:88px">
+      <h2 class="brand" style="font-size:clamp(2.4rem,5vw,3.8rem);margin-bottom:8px">THANK YOU</h2>
+      <p class="s1tag">TruthForge — Where AI meets accountability.</p>
+      <div class="pr">
+        <span class="pl pc">BUILT FOR BRIGHT DATA HACKATHON 2025</span>
+      </div>
+      <p class="s10disc">Discord: <span>kanhaiya9650</span></p>
+      <div class="s10stats">
+        <div class="s10s"><div class="s10sn">3</div><div class="s10sl">AI ENGINES</div></div>
+        <div class="s10s"><div class="s10sn">5</div><div class="s10sl">BD TOOLS</div></div>
+        <div class="s10s"><div class="s10sn">4</div><div class="s10sl">COMPANIES</div></div>
+        <div class="s10s"><div class="s10sn">&lt;30s</div><div class="s10sl">PER ANALYSIS</div></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;justify-content:center">
+        <a href="index.html" style="padding:10px 22px;background:var(--cyan);color:#0B0E14;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;font-weight:700;text-decoration:none;transition:opacity 0.2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">VIEW LIVE DEMO →</a>
+        <a href="https://github.com/Kanhaiya76618/truthforge" target="_blank" style="padding:10px 22px;background:transparent;color:var(--cyan);border:1px solid rgba(0,229,255,0.35);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-decoration:none;transition:background 0.2s" onmouseover="this.style.background='rgba(0,229,255,0.08)'" onmouseout="this.style.background='transparent'">VIEW GITHUB →</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const TOTAL = 10;
+  let current = 1;
+
+  function changeSlide(dir) {
+    const next = current + dir;
+    if (next < 1 || next > TOTAL) return;
+    document.getElementById('slide-' + current).classList.remove('active');
+    current = next;
+    document.getElementById('slide-' + current).classList.add('active');
+    document.getElementById('slide-counter').textContent = current + ' / ' + TOTAL;
+    document.getElementById('progress-bar').style.width = ((current / TOTAL) * 100) + '%';
+    document.getElementById('btn-prev').disabled = (current === 1);
+    document.getElementById('btn-next').disabled = (current === TOTAL);
+    if (current === 6) restartTimeline();
+    if (current === 8) loadLiveResults();
+    if (current === 10) initParticles('pcv10', 60);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   changeSlide(-1);
+  });
+
+  document.getElementById('btn-prev').disabled = true;
+  document.getElementById('progress-bar').style.width = ((1 / TOTAL) * 100) + '%';
+
+  // Timeline animation restart
+  function restartTimeline() {
+    const p = document.getElementById('tlp');
+    if (!p) return;
+    p.style.transition = 'none';
+    p.style.width = '0';
+    p.offsetHeight;
+    p.style.transition = 'width 2s ease';
+    setTimeout(() => { p.style.width = 'calc(100% - 48px)'; }, 50);
+  }
+
+  // Particles
+  function initParticles(id, count) {
+    const cv = document.getElementById(id);
+    if (!cv) return;
+    const ctx = cv.getContext('2d');
+    cv.width = window.innerWidth;
+    cv.height = window.innerHeight;
+    const pts = Array.from({length: count}, () => ({
+      x: Math.random() * cv.width,
+      y: Math.random() * cv.height,
+      r: Math.random() * 1.4 + 0.3,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: (Math.random() - 0.5) * 0.35,
+      a: Math.random() * 0.35 + 0.08
+    }));
+    (function draw() {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      pts.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,229,255,${p.a})`;
+        ctx.fill();
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = cv.width;
+        if (p.x > cv.width) p.x = 0;
+        if (p.y < 0) p.y = cv.height;
+        if (p.y > cv.height) p.y = 0;
+      });
+      requestAnimationFrame(draw);
+    })();
+  }
+  initParticles('pcv1', 80);
+
+  // Live results
+  let loaded = false;
+  async function loadLiveResults() {
+    if (loaded) return;
+    const ld = document.getElementById('results-loading');
+    const tbl = document.getElementById('results-table');
+    try {
+      const res = await fetch('http://localhost:8000/api/companies');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const companies = data.companies || [];
+      if (companies.length === 0) {
+        ld.innerHTML = '<p style="color:#F59E0B;font-family:\'JetBrains Mono\',monospace;font-size:0.72rem">Start backend and analyze companies first</p>';
+        return;
+      }
+      ld.style.display = 'none';
+      tbl.style.display = 'table';
+      const tb = tbl.querySelector('tbody');
+      tb.innerHTML = '';
+      companies.forEach(item => {
+        const c = item.company;
+        const s = item.scores;
+        const score = s?.truth_score || 0;
+        const col = score >= 70 ? '#10B981' : score >= 50 ? '#F59E0B' : '#EF4444';
+        const verd = score >= 70 ? 'VERIFIED' : score >= 50 ? 'CAUTION' : 'RISK';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="color:#E2E8F0;font-weight:600;padding:13px 16px">${c.name}</td>
+          <td style="color:#64748b;padding:13px 16px;font-family:'JetBrains Mono',monospace;font-size:0.84rem">${s?.signal_score ?? '—'}</td>
+          <td style="color:#64748b;padding:13px 16px;font-family:'JetBrains Mono',monospace;font-size:0.84rem">${s?.integrity_score ?? '—'}</td>
+          <td style="color:#64748b;padding:13px 16px;font-family:'JetBrains Mono',monospace;font-size:0.84rem">${s?.verification_score ?? '—'}</td>
+          <td style="color:${col};font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.05rem;padding:13px 16px">${score || '—'}</td>
+          <td style="padding:13px 16px"><span style="padding:3px 9px;background:${col}20;color:${col};border:1px solid ${col}40;border-radius:4px;font-size:0.6rem;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em">${score ? verd : 'NOT ANALYZED'}</span></td>`;
+        tb.appendChild(tr);
+      });
+      loaded = true;
+    } catch(e) {
+      ld.innerHTML = '<p style="color:#EF4444;font-family:\'JetBrains Mono\',monospace;font-size:0.72rem">⚠ API not running — start backend and analyze companies first: <code style="color:#F59E0B">python main.py</code></p>';
+    }
+  }
+</script>
+</body>
+</html>
