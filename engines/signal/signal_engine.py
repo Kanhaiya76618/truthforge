@@ -161,44 +161,58 @@ async def analyze_signals(company: Dict) -> Dict:
     Main entry point for the Signal Engine.
     Returns: signal_score, signals_found, top_signal, recommendation
     """
-    company_name = company["name"]
+    company_name = company.get("name", "Unknown")
     logger.info(f"Starting Signal Engine for {company_name}")
 
-    # 1. Collect raw signals
-    signals = await collect_signals(company_name)
+    try:
+        # 1. Collect raw signals
+        signals = await collect_signals(company_name)
 
-    # 2. AI analysis
-    ai_analysis = await analyze_with_ai(company_name, signals)
+        # 2. AI analysis
+        ai_analysis = await analyze_with_ai(company_name, signals)
 
-    # 3. Calculate weighted score
-    signal_score = calculate_signal_score(signals, ai_analysis)
+        # 3. Calculate weighted score
+        signal_score = calculate_signal_score(signals, ai_analysis)
 
-    # 4. Build response
-    top_signals = []
-    for category in ["funding", "hiring", "executive", "news"]:
-        if signals[category]:
-            top_signals.append({
-                "category": category,
-                "title": signals[category][0]["title"],
-                "url": signals[category][0]["url"],
-                "snippet": signals[category][0]["snippet"],
-            })
+        # 4. Build response
+        top_signals = []
+        for category in ["funding", "hiring", "executive", "news"]:
+            if signals[category]:
+                top_signals.append({
+                    "category": category,
+                    "title": signals[category][0]["title"],
+                    "url": signals[category][0]["url"],
+                    "snippet": signals[category][0]["snippet"],
+                })
 
-    result = {
-        "company_name": company_name,
-        "signal_score": signal_score,
-        "breakdown": {
-            "funding_strength": ai_analysis["funding_strength"],
-            "hiring_strength":  ai_analysis["hiring_strength"],
-            "exec_strength":    ai_analysis["exec_strength"],
-            "news_strength":    ai_analysis["news_strength"],
-        },
-        "top_signal":            ai_analysis["top_signal"],
-        "buying_intent_summary": ai_analysis["buying_intent_summary"],
-        "recommendation":        ai_analysis["recommendation"],
-        "evidence":              top_signals,
-        "total_signals_found":   sum(len(v) for v in signals.values()),
-    }
+        result = {
+            "company_name": company_name,
+            "signal_score": signal_score,
+            "breakdown": {
+                "funding_strength": ai_analysis["funding_strength"],
+                "hiring_strength":  ai_analysis["hiring_strength"],
+                "exec_strength":    ai_analysis["exec_strength"],
+                "news_strength":    ai_analysis["news_strength"],
+            },
+            "top_signal":            ai_analysis["top_signal"],
+            "buying_intent_summary": ai_analysis["buying_intent_summary"],
+            "recommendation":        ai_analysis["recommendation"],
+            "evidence":              top_signals,
+            "total_signals_found":   sum(len(v) for v in signals.values()),
+        }
 
-    logger.info(f"Signal Engine complete for {company_name}: score={signal_score}")
-    return result
+        logger.info(f"Signal Engine complete for {company_name}: score={signal_score}")
+        return result
+
+    except Exception as e:
+        logger.error(f"Signal Engine failed for {company_name}: {e}")
+        return {
+            "company_name":          company_name,
+            "signal_score":          0,
+            "breakdown":             {"funding_strength": 0, "hiring_strength": 0, "exec_strength": 0, "news_strength": 0},
+            "top_signal":            "Engine error — analysis could not be completed",
+            "buying_intent_summary": "Signal analysis failed. Manual review required.",
+            "recommendation":        "Retry analysis or review manually.",
+            "evidence":              [],
+            "total_signals_found":   0,
+        }

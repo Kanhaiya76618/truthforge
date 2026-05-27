@@ -265,47 +265,65 @@ async def analyze_esg(company: Dict) -> Dict:
     Main entry point for the GreenwashGuard engine.
     Returns: integrity_score, claims, greenwash_risk, evidence
     """
-    company_name = company["name"]
-    company_url  = company["url"]
+    company_name = company.get("name", "Unknown")
+    company_url  = company.get("url", "")
     logger.info(f"Starting GreenwashGuard for {company_name}")
 
-    # 1. Collect ESG data from web
-    esg_data = await collect_esg_data(company_name, company_url)
+    try:
+        # 1. Collect ESG data from web
+        esg_data = await collect_esg_data(company_name, company_url)
 
-    # 2. Extract specific claims
-    claims = await extract_esg_claims(company_name, esg_data)
+        # 2. Extract specific claims
+        claims = await extract_esg_claims(company_name, esg_data)
 
-    # 3. Score integrity
-    scores = await score_esg_integrity(company_name, claims, esg_data)
+        # 3. Score integrity
+        scores = await score_esg_integrity(company_name, claims, esg_data)
 
-    # 4. Build evidence list
-    evidence = []
-    for category in ["esg_claims", "controversies", "regulatory"]:
-        if esg_data[category]:
-            evidence.append({
-                "category": category,
-                "title":    esg_data[category][0]["title"],
-                "url":      esg_data[category][0]["url"],
-            })
+        # 4. Build evidence list
+        evidence = []
+        for category in ["esg_claims", "controversies", "regulatory"]:
+            if esg_data[category]:
+                evidence.append({
+                    "category": category,
+                    "title":    esg_data[category][0]["title"],
+                    "url":      esg_data[category][0]["url"],
+                })
 
-    result = {
-        "company_name":       company_name,
-        "integrity_score":    scores["integrity_score"],
-        "breakdown": {
-            "environmental": scores["environmental_score"],
-            "social":        scores["social_score"],
-            "governance":    scores["governance_score"],
-        },
-        "greenwash_risk":     scores["greenwash_risk"],
-        "verified_claims":    scores["verified_claims"],
-        "contradicted_claims": scores["contradicted_claims"],
-        "claims_found":       claims,
-        "summary":            scores["summary"],
-        "biggest_risk":       scores["biggest_risk"],
-        "recommendation":     scores["recommendation"],
-        "evidence":           evidence,
-        "total_sources_checked": sum(len(v) for v in esg_data.values() if isinstance(v, list)),
-    }
+        result = {
+            "company_name":       company_name,
+            "integrity_score":    scores["integrity_score"],
+            "breakdown": {
+                "environmental": scores["environmental_score"],
+                "social":        scores["social_score"],
+                "governance":    scores["governance_score"],
+            },
+            "greenwash_risk":     scores["greenwash_risk"],
+            "verified_claims":    scores["verified_claims"],
+            "contradicted_claims": scores["contradicted_claims"],
+            "claims_found":       claims,
+            "summary":            scores["summary"],
+            "biggest_risk":       scores["biggest_risk"],
+            "recommendation":     scores["recommendation"],
+            "evidence":           evidence,
+            "total_sources_checked": sum(len(v) for v in esg_data.values() if isinstance(v, list)),
+        }
 
-    logger.info(f"GreenwashGuard complete for {company_name}: score={scores['integrity_score']}, risk={scores['greenwash_risk']}")
-    return result
+        logger.info(f"GreenwashGuard complete for {company_name}: score={scores['integrity_score']}, risk={scores['greenwash_risk']}")
+        return result
+
+    except Exception as e:
+        logger.error(f"GreenwashGuard failed for {company_name}: {e}")
+        return {
+            "company_name":        company_name,
+            "integrity_score":     0,
+            "breakdown":           {"environmental": 0, "social": 0, "governance": 0},
+            "greenwash_risk":      "unknown",
+            "verified_claims":     0,
+            "contradicted_claims": 0,
+            "claims_found":        [],
+            "summary":             "ESG analysis could not be completed. Manual review required.",
+            "biggest_risk":        "Engine error — insufficient data",
+            "recommendation":      "Retry analysis or review manually.",
+            "evidence":            [],
+            "total_sources_checked": 0,
+        }

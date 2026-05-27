@@ -408,57 +408,69 @@ async def verify_claims(company: Dict) -> Dict:
     Main entry point for ClaimWire engine.
     Returns: verification_score, per-claim results, evidence
     """
-    company_name = company["name"]
-    company_url  = company["url"]
+    company_name = company.get("name", "Unknown")
+    company_url  = company.get("url", "")
     logger.info(f"Starting ClaimWire for {company_name}")
 
-    # Step 1: Fetch homepage
-    homepage_text = await fetch_company_homepage(company_name, company_url)
+    try:
+        # Step 1: Fetch homepage
+        homepage_text = await fetch_company_homepage(company_name, company_url)
 
-    # Step 2: Extract claims
-    claims = await extract_claims(company_name, homepage_text)
-    logger.info(
-        f"Extracted {len(claims)} claims for {company_name}: "
-        + str([c.get("claim", "")[:60] for c in claims])
-    )
+        # Step 2: Extract claims
+        claims = await extract_claims(company_name, homepage_text)
+        logger.info(
+            f"Extracted {len(claims)} claims for {company_name}: "
+            + str([c.get("claim", "")[:60] for c in claims])
+        )
 
-    # Step 3: Verify all claims in parallel (limit to 5 to save API credits)
-    verification_tasks = [
-        verify_single_claim(company_name, claim)
-        for claim in claims[:5]
-    ]
-    verified_claims = list(await asyncio.gather(*verification_tasks))
-    for vc in verified_claims:
-        logger.info(f"Claim: '{vc['claim'][:50]}...' → {vc['status']}")
+        # Step 3: Verify all claims in parallel (limit to 5 to save API credits)
+        verification_tasks = [
+            verify_single_claim(company_name, claim)
+            for claim in claims[:5]
+        ]
+        verified_claims = list(await asyncio.gather(*verification_tasks))
+        for vc in verified_claims:
+            logger.info(f"Claim: '{vc['claim'][:50]}...' → {vc['status']}")
 
-    # Step 4: Calculate score
-    verification_score = calculate_verification_score(verified_claims)
+        # Step 4: Calculate score
+        verification_score = calculate_verification_score(verified_claims)
 
-    # Count statuses
-    status_counts = {
-        "verified":     sum(1 for c in verified_claims if c["status"] == "verified"),
-        "partial":      sum(1 for c in verified_claims if c["status"] == "partial"),
-        "contradicted": sum(1 for c in verified_claims if c["status"] == "contradicted"),
-        "unverifiable": sum(1 for c in verified_claims if c["status"] == "unverifiable"),
-    }
+        # Count statuses
+        status_counts = {
+            "verified":     sum(1 for c in verified_claims if c["status"] == "verified"),
+            "partial":      sum(1 for c in verified_claims if c["status"] == "partial"),
+            "contradicted": sum(1 for c in verified_claims if c["status"] == "contradicted"),
+            "unverifiable": sum(1 for c in verified_claims if c["status"] == "unverifiable"),
+        }
 
-    result = {
-        "company_name":        company_name,
-        "verification_score":  verification_score,
-        "claims_checked":      len(verified_claims),
-        "status_breakdown":    status_counts,
-        "verified_claims":     verified_claims,
-        "overall_trust_level": (
-            "high"   if verification_score >= 70 else
-            "medium" if verification_score >= 45 else
-            "low"
-        ),
-    }
+        result = {
+            "company_name":        company_name,
+            "verification_score":  verification_score,
+            "claims_checked":      len(verified_claims),
+            "status_breakdown":    status_counts,
+            "verified_claims":     verified_claims,
+            "overall_trust_level": (
+                "high"   if verification_score >= 70 else
+                "medium" if verification_score >= 45 else
+                "low"
+            ),
+        }
 
-    logger.info(
-        f"ClaimWire complete for {company_name}: "
-        f"score={verification_score}, "
-        f"verified={status_counts['verified']}, "
-        f"contradicted={status_counts['contradicted']}"
-    )
-    return result
+        logger.info(
+            f"ClaimWire complete for {company_name}: "
+            f"score={verification_score}, "
+            f"verified={status_counts['verified']}, "
+            f"contradicted={status_counts['contradicted']}"
+        )
+        return result
+
+    except Exception as e:
+        logger.error(f"ClaimWire failed for {company_name}: {e}")
+        return {
+            "company_name":        company_name,
+            "verification_score":  0,
+            "claims_checked":      0,
+            "status_breakdown":    {"verified": 0, "partial": 0, "contradicted": 0, "unverifiable": 0},
+            "verified_claims":     [],
+            "overall_trust_level": "low",
+        }
