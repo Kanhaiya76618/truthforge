@@ -45,6 +45,8 @@ celery_app.conf.update(
     task_soft_time_limit=300,
     task_time_limit=600,
     result_expires=3600,
+    worker_pool='solo',
+    broker_connection_retry_on_startup=True,
     beat_schedule={
         # Re-analyze all companies every 6 hours
         'reanalyze-all-companies': {
