@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="en" class="dark-theme">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TruthForge — Enterprise Verification Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="landing.css">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   CSS VARIABLES
+═══════════════════════════════════════════════════════════ */
+:root {
+  --cyan:         #00E5FF;
+  --purple:       #7C3AED;
+  --obsidian:     #0B0E14;
+  --emerald:      #10B981;
+  --crimson:      #EF4444;
+  --amber:        #F59E0B;
+  --blue:         #3B82F6;
+  --rose:         #F43F5E;
+  --glass-bg:     rgba(11,14,20,0.6);
+  --glass-border: rgba(0,229,255,0.10);
+  --text:         #F1F5F9;
+  --text2:        #94A3B8;
+  --text3:        #475569;
+  --border:       rgba(255,255,255,0.06);
+  --radius:       14px;
+  --radius-sm:    8px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BODY + BACKGROUND
+═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: #0B0E14 !important;
+  color: #F1F5F9;
+  font-family: 'Inter', sans-serif;
+  background-image:
+    radial-gradient(circle at 0% 0%,    rgba(0,229,255,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(124,58,237,0.06) 0%, transparent 50%) !important;
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Noise texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Animated grid overlay */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: grid-pan 20s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* App wrapper — sits above bg */
+.app-wrapper { position: relative; z-index: 1; }
+
+/* ═══════════════════════════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════════════════════════ */
+.app-navbar {
+  background: rgba(11,14,20,0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,229,255,0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 64px;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-brand { display: flex; align-items: center; gap: 12px; }
+.nav-tabs  { display: flex; align-items: center; }
+.nav-actions { display: flex; align-items: center; gap: 14px; }
+
+/* Tab buttons — override landing.css .nav-btn */
+.app-navbar .nav-btn {
+  all: unset;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.4);
+  padding: 0 18px;
+  height: 64px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+.app-navbar .nav-btn:hover { color: rgba(255,255,255,0.8); }
+.app-navbar .nav-btn.active {
+  color: var(--cyan);
+  border-bottom-color: var(--cyan);
+}
+
+/* Home link */
+.home-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: color 0.2s, border-color 0.2s;
+}
+.home-link:hover { color: var(--cyan); border-color: rgba(0,229,255,0.3); }
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════════════════════ */
+.app-main {
+  padding: 32px 48px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+/* Views */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ═══════════════════════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════════════════════ */
+.card {
+  background: rgba(11,14,20,0.6) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(0,229,255,0.10) !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  transition: all 0.2s !important;
+}
+.card:hover {
+  border-color: rgba(0,229,255,0.25) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,229,255,0.08) !important;
+}
+.card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  font-weight: 500;
+}
+.card-body { padding: 20px; }
+
+/* Search card */
+.search-section { margin-bottom: 28px; }
+.search-card {
+  background: rgba(11,14,20,0.6) !important;
+  border: 1px solid rgba(0,229,255,0.10) !important;
+  border-radius: 14px !important;
+  backdrop-filter: blur(16px) !important;
+  padding: 20px 24px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INPUTS
+═══════════════════════════════════════════════════════════ */
+.input-group { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+
+.input-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  font-weight: 500;
+}
+
+.input-field {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 11px 16px;
+  color: #F1F5F9;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.input-field::placeholder { color: var(--text3); }
+.input-field:focus {
+  border-color: rgba(0,229,255,0.4);
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.06);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ANALYZE BUTTON
+═══════════════════════════════════════════════════════════ */
+.btn-analyze {
+  background: var(--cyan) !important;
+  color: #0B0E14 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  padding: 11px 28px !important;
+  border-radius: 8px !important;
+  border: none !important;
+  box-shadow: 0 0 20px rgba(0,229,255,0.2) !important;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  height: auto !important;
+}
+.btn-analyze:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 0 28px rgba(0,229,255,0.35) !important;
+}
+.btn-analyze:active  { transform: translateY(0) !important; }
+.btn-analyze:disabled { opacity: 0.5 !important; cursor: not-allowed !important; transform: none !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   LOADING OVERLAY
+═══════════════════════════════════════════════════════════ */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(11,14,20,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 200;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+.loading-overlay.active { display: flex; }
+
+.loader-ring {
+  width: 56px;
+  height: 56px;
+  border: 3px solid rgba(0,229,255,0.15);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.loading-steps { display: flex; flex-direction: column; gap: 8px; }
+
+.loading-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  transition: color 0.3s;
+}
+.loading-step.active { color: var(--cyan); }
+.loading-step.done   { color: var(--emerald); }
+
+.step-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.loading-step.active .step-dot { animation: pulse-step 1s infinite; }
+
+/* ═══════════════════════════════════════════════════════════
+   TRUTHSCORE CARD
+═══════════════════════════════════════════════════════════ */
+.truthscore-card {
+  background: rgba(11,14,20,0.6) !important;
+  border: 1px solid rgba(0,229,255,0.15) !important;
+  border-radius: 14px !important;
+  backdrop-filter: blur(16px) !important;
+  padding: 28px;
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.truthscore-card::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -20%;
+  width: 60%; height: 200%;
+  background: radial-gradient(ellipse, rgba(0,229,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Score ring */
+.score-ring-wrap { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+.score-ring-wrap svg { transform: rotate(-90deg); }
+.ring-bg   { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 8; }
+.ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(0.34,1.56,0.64,1); }
+
+.ring-score-text {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+
+.score-number {
+  font-family: 'Syne', sans-serif;
+  font-size: 36px; font-weight: 800;
+  letter-spacing: -2px; line-height: 1;
+}
+.score-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text3); margin-top: 2px;
+}
+
+.truthscore-info { flex: 1; }
+
+.verdict-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+.verdict-badge.trustworthy { background: rgba(16,185,129,0.1);  color: var(--emerald); border: 1px solid rgba(16,185,129,0.2); }
+.verdict-badge.caution     { background: rgba(245,158,11,0.1);  color: var(--amber);   border: 1px solid rgba(245,158,11,0.2); }
+.verdict-badge.high-risk   { background: rgba(239,68,68,0.1);   color: var(--crimson); border: 1px solid rgba(239,68,68,0.2);  }
+
+.company-name-display {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px; font-weight: 800;
+  letter-spacing: -0.5px; margin-bottom: 8px; color: var(--text);
+}
+.summary-text {
+  font-size: 13px; color: var(--text2);
+  line-height: 1.6; max-width: 560px; margin-bottom: 16px;
+  font-family: 'Inter', sans-serif;
+}
+
+.use-cases { display: flex; gap: 8px; flex-wrap: wrap; }
+.use-case-tag {
+  padding: 4px 12px; border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  border: 1px solid rgba(0,229,255,0.1);
+  color: var(--text3); background: rgba(255,255,255,0.03);
+}
+.use-case-tag.active-sales  { background: rgba(0,229,255,0.08);   color: var(--cyan);    border-color: rgba(0,229,255,0.2);   }
+.use-case-tag.active-invest { background: rgba(16,185,129,0.08);  color: var(--emerald); border-color: rgba(16,185,129,0.2);  }
+.use-case-tag.active-vendor { background: rgba(245,158,11,0.08);  color: var(--amber);   border-color: rgba(245,158,11,0.2);  }
+
+/* Stat chips */
+.stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.stat-chip {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(0,229,255,0.08);
+  border-radius: 8px; padding: 10px 16px;
+  display: flex; flex-direction: column; gap: 2px; min-width: 100px;
+}
+.stat-chip-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text3);
+}
+.stat-chip-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 700; letter-spacing: -0.5px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ENGINE CARDS
+═══════════════════════════════════════════════════════════ */
+.engine-card { padding: 20px; }
+
+.engine-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px;
+}
+.engine-icon.signal { background: rgba(0,229,255,0.10);   color: var(--cyan);    }
+.engine-icon.esg    { background: rgba(16,185,129,0.12);  color: var(--emerald); }
+.engine-icon.claim  { background: rgba(245,158,11,0.12);  color: var(--amber);   }
+
+.engine-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text3); margin-bottom: 4px;
+}
+.engine-score {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px; font-weight: 800;
+  letter-spacing: -1px; line-height: 1; margin-bottom: 12px;
+}
+.engine-detail {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; color: var(--text3); line-height: 1.6;
+}
+
+/* Score bars */
+.score-bar-wrap { margin-bottom: 12px; }
+.score-bar-track {
+  height: 4px; background: rgba(255,255,255,0.06);
+  border-radius: 2px; overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%; border-radius: 2px;
+  transition: width 1s cubic-bezier(0.34,1.56,0.64,1);
+  width: 0%;
+}
+.score-bar-fill.signal { background: linear-gradient(90deg, #00B4D8, var(--cyan)); box-shadow: 0 0 8px rgba(0,229,255,0.3); }
+.score-bar-fill.esg    { background: linear-gradient(90deg, #059669, #10B981); }
+.score-bar-fill.claim  { background: linear-gradient(90deg, #D97706, #F59E0B); }
+
+/* Breakdown rows */
+.breakdown-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+.breakdown-row:last-child { border-bottom: none; }
+.breakdown-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text3);
+}
+.breakdown-val { font-weight: 600; font-size: 12px; color: var(--text); }
+
+/* ═══════════════════════════════════════════════════════════
+   GRIDS
+═══════════════════════════════════════════════════════════ */
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 20px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr;       gap: 16px; margin-bottom: 20px; }
+
+/* ═══════════════════════════════════════════════════════════
+   CLAIMS TABLE
+═══════════════════════════════════════════════════════════ */
+.claims-table { width: 100%; border-collapse: collapse; }
+.claims-table thead tr { border-bottom: 1px solid var(--border); }
+.claims-table th {
+  padding: 10px 16px; text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text3); font-weight: 500;
+}
+.claims-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.claims-table tbody tr:last-child { border-bottom: none; }
+.claims-table tbody tr:hover { background: rgba(0,229,255,0.02); }
+.claims-table td { padding: 12px 16px; font-size: 12px; color: var(--text2); vertical-align: top; }
+.claim-text { color: var(--text); font-size: 13px; line-height: 1.4; font-family: 'Inter', sans-serif; }
+.confidence-chip { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text3); }
+
+/* Status badges */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  white-space: nowrap; border: 1px solid transparent;
+}
+.status-badge.verified     { background: rgba(16,185,129,0.1);  color: #10B981; border-color: rgba(16,185,129,0.2);  }
+.status-badge.partial      { background: rgba(245,158,11,0.1);  color: #F59E0B; border-color: rgba(245,158,11,0.2);  }
+.status-badge.contradicted { background: rgba(239,68,68,0.1);   color: #EF4444; border-color: rgba(239,68,68,0.2);   }
+.status-badge.unverifiable { background: rgba(100,116,139,0.1); color: #64748B; border-color: rgba(100,116,139,0.2); }
+
+/* ═══════════════════════════════════════════════════════════
+   EVIDENCE
+═══════════════════════════════════════════════════════════ */
+.evidence-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 8px;
+  transition: border-color 0.15s;
+}
+.evidence-item:hover { border-color: rgba(0,229,255,0.15); }
+.evidence-item:last-child { margin-bottom: 0; }
+
+.evidence-category {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; text-transform: uppercase;
+  letter-spacing: 0.08em; padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0,229,255,0.08);
+  color: var(--cyan);
+  border: 1px solid rgba(0,229,255,0.15);
+  white-space: nowrap; flex-shrink: 0; margin-top: 1px;
+}
+.evidence-text { flex: 1; min-width: 0; }
+.evidence-title {
+  font-size: 12px; color: var(--text); line-height: 1.4; margin-bottom: 2px;
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  font-family: 'Inter', sans-serif;
+}
+.evidence-link {
+  font-size: 10px; color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+  text-decoration: none; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; display: block;
+  transition: color 0.15s;
+}
+.evidence-link:hover { color: var(--cyan); }
+
+/* ═══════════════════════════════════════════════════════════
+   WATCHLIST
+═══════════════════════════════════════════════════════════ */
+.watchlist-item {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.15s;
+}
+.watchlist-item:last-child { border-bottom: none; }
+.watchlist-item:hover { background: rgba(0,229,255,0.03); }
+.watchlist-name { font-size: 13px; font-weight: 500; color: var(--text); font-family: 'Inter', sans-serif; }
+.watchlist-url  { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+
+.score-pill {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 800;
+  letter-spacing: -0.5px; padding: 4px 12px; border-radius: 8px;
+}
+.score-pill.high { background: rgba(16,185,129,0.1); color: var(--emerald); }
+.score-pill.mid  { background: rgba(245,158,11,0.1); color: var(--amber);   }
+.score-pill.low  { background: rgba(239,68,68,0.1);  color: var(--crimson); }
+
+/* ═══════════════════════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════════════════════ */
+.empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 64px 32px; text-align: center; gap: 12px;
+}
+.empty-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  background: rgba(0,229,255,0.06);
+  border: 1px solid rgba(0,229,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cyan); margin-bottom: 4px;
+}
+.empty-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 700; color: var(--text);
+}
+.empty-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px; color: var(--text3);
+  max-width: 280px; line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KEYFRAMES
+═══════════════════════════════════════════════════════════ */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes pulse-step {
+  0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,229,255,0.4); }
+  50%      { opacity: 0.8; box-shadow: 0 0 0 4px rgba(0,229,255,0); }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in { animation: fade-up 0.4s ease forwards; opacity: 0; }
+.animate-in:nth-child(1) { animation-delay: 0.05s; }
+.animate-in:nth-child(2) { animation-delay: 0.10s; }
+.animate-in:nth-child(3) { animation-delay: 0.15s; }
+.animate-in:nth-child(4) { animation-delay: 0.20s; }
+
+/* ── Error Banner ─────────────────────────────────────────── */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  animation: fade-up 0.3s ease forwards;
+}
+.error-icon {
+  font-size: 20px;
+  color: #EF4444;
+  flex-shrink: 0;
+}
+.error-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #EF4444;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.error-desc {
+  font-size: 12px;
+  color: #94A3B8;
+  line-height: 1.5;
+}
+.error-banner button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  flex-shrink: 0;
+}
+.error-banner button:hover { color: #EF4444; }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .grid-3 { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .truthscore-card { flex-direction: column; }
+  .search-card { flex-wrap: wrap; }
+  .app-main { padding: 24px; }
+  .app-navbar { padding: 0 20px; }
+  .app-navbar .nav-btn { padding: 0 12px; font-size: 10px; }
+}
+@media (max-width: 640px) {
+  .nav-actions .status-pill { display: none; }
+  .app-main { padding: 16px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CHAT VIEW
+═══════════════════════════════════════════════════════════ */
+#view-chat.active { display: flex; flex-direction: column; }
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  background: rgba(11,14,20,0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0,229,255,0.10);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.chat-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(0,229,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(11,14,20,0.8);
+  flex-shrink: 0;
+}
+.chat-header-left  { display: flex; align-items: center; gap: 12px; }
+.chat-header-right { display: flex; align-items: center; gap: 10px; }
+
+.chat-ai-avatar {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(0,229,255,0.2), rgba(124,58,237,0.2));
+  border: 1px solid rgba(0,229,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cyan);
+}
+
+.chat-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 700; color: #F1F5F9;
+}
+.chat-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: rgba(0,229,255,0.6);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px;
+}
+
+.chat-company-select {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(0,229,255,0.15);
+  border-radius: 8px; padding: 7px 12px;
+  color: #F1F5F9; font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; outline: none; cursor: pointer; transition: border-color 0.2s;
+}
+.chat-company-select:focus { border-color: rgba(0,229,255,0.4); }
+.chat-company-select option { background: #0B0E14; color: #F1F5F9; }
+
+.chat-clear-btn {
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px; color: rgba(255,255,255,0.4);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  cursor: pointer; transition: all 0.2s;
+}
+.chat-clear-btn:hover { border-color: rgba(244,63,94,0.3); color: #F43F5E; }
+
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 24px;
+  display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth;
+}
+
+.chat-message {
+  display: flex; gap: 10px; align-items: flex-start;
+  animation: fade-up 0.3s ease forwards;
+}
+.chat-message.user { flex-direction: row-reverse; }
+
+.message-avatar {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 13px; font-weight: 700;
+  font-family: 'Syne', sans-serif;
+}
+.ai-avatar {
+  background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(124,58,237,0.15));
+  border: 1px solid rgba(0,229,255,0.2); color: var(--cyan);
+}
+.user-avatar {
+  background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(16,185,129,0.2));
+  border: 1px solid rgba(59,130,246,0.2); color: #3B82F6;
+}
+
+.message-bubble {
+  max-width: 70%; padding: 12px 16px; border-radius: 12px;
+  font-size: 13px; line-height: 1.6; position: relative;
+}
+.ai-bubble {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(0,229,255,0.08); color: #E2E8F0;
+  border-top-left-radius: 4px;
+}
+.user-bubble {
+  background: rgba(0,229,255,0.08);
+  border: 1px solid rgba(0,229,255,0.15); color: #F1F5F9;
+  border-top-right-radius: 4px;
+}
+
+.message-time {
+  font-size: 9px; font-family: 'JetBrains Mono', monospace;
+  color: rgba(255,255,255,0.2); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-top: 6px;
+}
+
+.typing-indicator { display: flex; gap: 4px; align-items: center; padding: 14px 16px; }
+.typing-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--cyan); opacity: 0.4;
+  animation: typing-bounce 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing-bounce {
+  0%,100% { opacity: 0.4; transform: translateY(0); }
+  50%      { opacity: 1;   transform: translateY(-4px); }
+}
+
+.chat-suggestions {
+  padding: 12px 24px; display: flex; gap: 8px; flex-wrap: wrap;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  background: rgba(11,14,20,0.4); flex-shrink: 0;
+}
+.suggestion-chip {
+  padding: 6px 14px;
+  background: rgba(0,229,255,0.05);
+  border: 1px solid rgba(0,229,255,0.12); border-radius: 100px;
+  color: rgba(0,229,255,0.7); font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.suggestion-chip:hover {
+  background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.3);
+  color: var(--cyan); transform: translateY(-1px);
+}
+
+.chat-input-area {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(0,229,255,0.08);
+  background: rgba(11,14,20,0.8); flex-shrink: 0;
+}
+.chat-input-wrap {
+  display: flex; gap: 10px; align-items: flex-end;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(0,229,255,0.12); border-radius: 12px;
+  padding: 12px 16px; transition: border-color 0.2s;
+}
+.chat-input-wrap:focus-within {
+  border-color: rgba(0,229,255,0.35);
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.05);
+}
+.chat-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: #F1F5F9; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; line-height: 1.5; resize: none; max-height: 120px;
+}
+.chat-input::placeholder { color: rgba(255,255,255,0.2); }
+
+.chat-send-btn {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--cyan); border: none; color: #0B0E14;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.2s; box-shadow: 0 0 12px rgba(0,229,255,0.2);
+}
+.chat-send-btn:hover { transform: translateY(-1px); box-shadow: 0 0 20px rgba(0,229,255,0.35); }
+.chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.chat-input-hint {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  color: rgba(255,255,255,0.15); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-top: 8px; text-align: center;
+}
+</style>
+</head>
+<body class="dark-theme">
+
+<!-- Scan lines (from landing.html) -->
+<div class="scan-line-container"><div class="scan-line"></div></div>
+<div class="h-scan-line"></div>
+
+<!-- Animated background grid -->
+<div class="bg-grid"></div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loader-ring"></div>
+  <div class="loading-title">Analyzing Company</div>
+  <div class="loading-steps" id="loadingSteps">
+    <div class="loading-step active" id="step-signal"><span class="step-dot"></span> Running SignalForge Engine</div>
+    <div class="loading-step" id="step-esg"><span class="step-dot"></span> Running GreenwashGuard Engine</div>
+    <div class="loading-step" id="step-claim"><span class="step-dot"></span> Running ClaimWire Engine</div>
+    <div class="loading-step" id="step-truth"><span class="step-dot"></span> Synthesizing TruthScore</div>
+  </div>
+</div>
+
+<div class="app-wrapper">
+
+  <!-- ─── NAVBAR ──────────────────────────────────────────── -->
+  <nav class="app-navbar">
+    <div class="nav-brand">
+      <div class="logo-mark">TF</div>
+      <div class="logo-text">
+        <span class="logo-name">TRUTHFORGE</span>
+        <span class="logo-sub">BY_KANHAIYA</span>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard')">DASHBOARD</button>
+      <button class="nav-btn" id="nav-analyze"   onclick="switchView('analyze')">ANALYZE</button>
+      <button class="nav-btn" id="nav-watchlist" onclick="switchView('watchlist')">WATCHLIST</button>
+      <button class="nav-btn" id="nav-chat"      onclick="switchView('chat')">CHAT</button>
+    </div>
+
+    <div class="nav-actions">
+      <div class="status-pill">
+        <span class="status-dot"></span>ALL ENGINES ONLINE
+      </div>
+      <a href="index.html" class="home-link">← HOME</a>
+    </div>
+  </nav>
+
+  <!-- ─── MAIN CONTENT ────────────────────────────────────── -->
+  <main class="app-main">
+
+    <!-- ════════ DASHBOARD VIEW ════════ -->
+    <div class="view active" id="view-dashboard">
+
+      <div class="search-section">
+        <div class="search-card">
+          <div class="input-group">
+            <label class="input-label">Company Name</label>
+            <input type="text" class="input-field" id="companyName" placeholder="e.g. Tesla" />
+          </div>
+          <div class="input-group">
+            <label class="input-label">Company URL</label>
+            <input type="text" class="input-field" id="companyUrl" placeholder="e.g. https://tesla.com" />
+          </div>
+          <button class="btn-analyze" id="analyzeBtn" onclick="runAnalysis()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            ANALYZE
+          </button>
+        </div>
+      </div>
+
+      <div id="analysisError" style="display:none" class="error-banner">
+        <div class="error-icon">⚠</div>
+        <div class="error-content">
+          <div class="error-title" id="errorTitle">Name / URL Mismatch</div>
+          <div class="error-desc" id="errorDesc">Please make sure company name and URL match.</div>
+        </div>
+        <button onclick="dismissError()">✕</button>
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyState">
+        <div class="grid-3">
+          <div class="card animate-in">
+            <div class="card-body engine-card">
+              <div class="engine-icon signal">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="engine-name">SignalForge</div>
+              <div class="engine-score" style="color:var(--cyan)">—</div>
+              <div class="engine-detail">Detects live buying signals — job postings, funding, executive hires, tech stack changes.</div>
+            </div>
+          </div>
+          <div class="card animate-in">
+            <div class="card-body engine-card">
+              <div class="engine-icon esg">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="engine-name">GreenwashGuard</div>
+              <div class="engine-score" style="color:var(--emerald)">—</div>
+              <div class="engine-detail">Verifies ESG claims against live regulatory filings, news coverage, and employee reviews.</div>
+            </div>
+          </div>
+          <div class="card animate-in">
+            <div class="card-body engine-card">
+              <div class="engine-icon claim">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"/></svg>
+              </div>
+              <div class="engine-name">ClaimWire</div>
+              <div class="engine-score" style="color:var(--amber)">—</div>
+              <div class="engine-detail">Cross-references every company claim against 10+ live sources returning Verified / Contradicted.</div>
+            </div>
+          </div>
+        </div>
+        <div class="card animate-in">
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="empty-title">Enter a company to begin</div>
+            <div class="empty-desc">TruthForge will run all three engines and return a TruthScore in 60–90 seconds.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="resultsSection" style="display:none">
+
+        <!-- TruthScore Hero -->
+        <div class="truthscore-card animate-in" id="truthscoreHero">
+          <div class="score-ring-wrap">
+            <svg width="140" height="140" viewBox="0 0 140 140">
+              <circle class="ring-bg" cx="70" cy="70" r="58"/>
+              <circle class="ring-fill" id="ringFill" cx="70" cy="70" r="58"
+                stroke-dasharray="364.4" stroke-dashoffset="364.4"
+                stroke="var(--cyan)"/>
+            </svg>
+            <div class="ring-score-text">
+              <div class="score-number" id="truthScoreNum" style="color:var(--cyan)">0</div>
+              <div class="score-label">TruthScore</div>
+            </div>
+          </div>
+          <div class="truthscore-info">
+            <div class="verdict-badge caution" id="verdictBadge">Analyzing…</div>
+            <div class="company-name-display" id="companyNameDisplay">Company</div>
+            <div class="summary-text" id="summaryText">Running analysis…</div>
+            <div class="use-cases" id="useCaseTags">
+              <span class="use-case-tag" id="tagSales">Sales</span>
+              <span class="use-case-tag" id="tagInvest">Investment</span>
+              <span class="use-case-tag" id="tagVendor">Vendor</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;text-align:right">
+            <div class="stat-chip">
+              <span class="stat-chip-label">Confidence</span>
+              <span class="stat-chip-value" id="confidenceVal" style="color:var(--cyan)">—</span>
+            </div>
+            <div class="stat-chip">
+              <span class="stat-chip-label">Biggest Risk</span>
+              <span style="font-size:11px;color:var(--crimson);line-height:1.4;max-width:180px;font-family:'Inter',sans-serif" id="biggestRisk">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Engine Cards -->
+        <div class="grid-3" id="engineCards">
+          <!-- Signal -->
+          <div class="card animate-in">
+            <div class="card-header">
+              <span class="card-title">SignalForge — Buying Intent</span>
+              <div class="engine-icon signal" style="width:28px;height:28px;border-radius:7px;margin:0">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+            <div class="card-body engine-card" style="padding-top:16px">
+              <div class="engine-name">Signal Score</div>
+              <div class="engine-score" id="signalScore" style="color:var(--cyan)">0</div>
+              <div class="score-bar-wrap">
+                <div class="score-bar-track"><div class="score-bar-fill signal" id="signalBar"></div></div>
+              </div>
+              <div id="signalBreakdown">
+                <div class="breakdown-row"><span class="breakdown-label">Funding</span><span class="breakdown-val" id="fundingStrength">—</span></div>
+                <div class="breakdown-row"><span class="breakdown-label">Hiring</span><span class="breakdown-val" id="hiringStrength">—</span></div>
+                <div class="breakdown-row"><span class="breakdown-label">Exec Moves</span><span class="breakdown-val" id="execStrength">—</span></div>
+                <div class="breakdown-row"><span class="breakdown-label">News</span><span class="breakdown-val" id="newsStrength">—</span></div>
+              </div>
+              <div style="margin-top:12px;font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace" id="signalTopSignal"></div>
+            </div>
+          </div>
+
+          <!-- ESG -->
+          <div class="card animate-in">
+            <div class="card-header">
+              <span class="card-title">GreenwashGuard — ESG</span>
+              <div class="engine-icon esg" style="width:28px;height:28px;border-radius:7px;margin:0">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+            <div class="card-body engine-card" style="padding-top:16px">
+              <div class="engine-name">Integrity Score</div>
+              <div class="engine-score" id="integrityScore" style="color:var(--emerald)">0</div>
+              <div class="score-bar-wrap">
+                <div class="score-bar-track"><div class="score-bar-fill esg" id="esgBar"></div></div>
+              </div>
+              <div id="esgBreakdown">
+                <div class="breakdown-row"><span class="breakdown-label">Environmental</span><span class="breakdown-val" id="envScore">—</span></div>
+                <div class="breakdown-row"><span class="breakdown-label">Social</span><span class="breakdown-val" id="socialScore">—</span></div>
+                <div class="breakdown-row"><span class="breakdown-label">Governance</span><span class="breakdown-val" id="govScore">—</span></div>
+              </div>
+              <div style="margin-top:12px">
+                <div class="status-badge" id="greenwashRisk" style="margin-top:4px">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ClaimWire -->
+          <div class="card animate-in">
+            <div class="card-header">
+              <span class="card-title">ClaimWire — Verification</span>
+              <div class="engine-icon claim" style="width:28px;height:28px;border-radius:7px;margin:0">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"/></svg>
+              </div>
+            </div>
+            <div class="card-body engine-card" style="padding-top:16px">
+              <div class="engine-name">Verification Score</div>
+              <div class="engine-score" id="verificationScore" style="color:var(--amber)">0</div>
+              <div class="score-bar-wrap">
+                <div class="score-bar-track"><div class="score-bar-fill claim" id="claimBar"></div></div>
+              </div>
+              <div id="claimBreakdown">
+                <div class="breakdown-row"><span class="breakdown-label">Verified</span><span class="breakdown-val" style="color:var(--emerald)" id="claimVerified">—</span></div>
+                <div class="breakdown-row"><span class="breakdown-label">Partial</span><span class="breakdown-val" style="color:var(--amber)" id="claimPartial">—</span></div>
+                <div class="breakdown-row"><span class="breakdown-label">Contradicted</span><span class="breakdown-val" style="color:var(--crimson)" id="claimContradicted">—</span></div>
+                <div class="breakdown-row"><span class="breakdown-label">Unverifiable</span><span class="breakdown-val" style="color:var(--text3)" id="claimUnverifiable">—</span></div>
+              </div>
+              <div style="margin-top:12px">
+                <div class="status-badge" id="trustLevel" style="margin-top:4px">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Claims Table + Evidence -->
+        <div class="grid-2">
+          <div class="card animate-in">
+            <div class="card-header"><span class="card-title">Verified Claims</span></div>
+            <div style="overflow-x:auto">
+              <table class="claims-table">
+                <thead>
+                  <tr><th>Claim</th><th>Status</th><th>Confidence</th></tr>
+                </thead>
+                <tbody id="claimsTableBody">
+                  <tr><td colspan="3" style="text-align:center;color:var(--text3);padding:24px;font-size:12px;font-family:'Inter',sans-serif">No claims data</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card animate-in">
+            <div class="card-header"><span class="card-title">Evidence Sources</span></div>
+            <div class="card-body" id="evidenceList">
+              <div class="empty-state" style="padding:32px">
+                <div class="empty-desc">Evidence will appear after analysis</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /resultsSection -->
+    </div><!-- /view-dashboard -->
+
+    <!-- ════════ ANALYZE VIEW ════════ -->
+    <div class="view" id="view-analyze">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Individual Engine Tests</span></div>
+        <div class="card-body">
+          <p style="font-size:13px;color:var(--text2);margin-bottom:20px;font-family:'Inter',sans-serif">Test individual engines by providing a Company ID from the watchlist.</p>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="input-group">
+              <label class="input-label">Company ID (UUID)</label>
+              <input type="text" class="input-field" id="engineCompanyId" placeholder="e.g. 2eeffd03-b01f-4698-b817-6431bca22b00"/>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn-analyze" onclick="runEngine('signal')" style="background:var(--cyan)!important;color:#0B0E14!important">Run SignalForge</button>
+              <button class="btn-analyze" onclick="runEngine('greenwash')" style="background:var(--emerald)!important;color:#0B0E14!important;box-shadow:0 0 20px rgba(16,185,129,0.2)!important">Run GreenwashGuard</button>
+              <button class="btn-analyze" onclick="runEngine('claimwire')" style="background:var(--amber)!important;color:#0B0E14!important;box-shadow:0 0 20px rgba(245,158,11,0.2)!important">Run ClaimWire</button>
+              <button class="btn-analyze" onclick="runEngine('truthscore')" style="background:linear-gradient(135deg,var(--cyan),var(--emerald))!important;color:#0B0E14!important">Run Full TruthScore</button>
+            </div>
+          </div>
+          <div class="card" style="margin-top:20px">
+            <div class="card-header"><span class="card-title">Response</span></div>
+            <div class="card-body">
+              <pre id="engineResponse" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto">Run an engine to see results...</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ WATCHLIST VIEW ════════ -->
+    <div class="view" id="view-watchlist">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text)">Company Watchlist</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-top:4px">All monitored companies</div>
+        </div>
+        <button class="btn-analyze" onclick="loadWatchlist()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          REFRESH
+        </button>
+      </div>
+      <div class="card">
+        <div id="watchlistContainer">
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5M19 11l-4-4M19 11l-4 4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="empty-title">Loading watchlist…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ CHAT VIEW ════════ -->
+    <div class="view" id="view-chat">
+      <div class="chat-container">
+
+        <!-- Chat Header -->
+        <div class="chat-header">
+          <div class="chat-header-left">
+            <div class="chat-ai-avatar">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" stroke-width="2"/>
+                <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke-width="2"/>
+              </svg>
+            </div>
+            <div>
+              <div class="chat-title">TruthForge AI</div>
+              <div class="chat-subtitle" id="chatContext">General Mode — No company selected</div>
+            </div>
+          </div>
+          <div class="chat-header-right">
+            <select class="chat-company-select" id="chatCompanySelect" onchange="updateChatContext()">
+              <option value="">General Chat</option>
+            </select>
+            <button class="chat-clear-btn" onclick="clearChat()">Clear</button>
+          </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-message ai">
+            <div class="message-avatar ai-avatar">⬡</div>
+            <div class="message-bubble ai-bubble">
+              <p>Hello! I'm TruthForge AI. I can help you understand company analysis results, explain TruthScores, and answer questions about verified claims.</p>
+              <p style="margin-top:8px">Select a company from the dropdown above to ask specific questions, or ask me anything about TruthForge.</p>
+              <div class="message-time">Just now</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Suggested Questions -->
+        <div class="chat-suggestions" id="chatSuggestions">
+          <button class="suggestion-chip" onclick="sendSuggestion(this)">What is a TruthScore?</button>
+          <button class="suggestion-chip" onclick="sendSuggestion(this)">How does ClaimWire work?</button>
+          <button class="suggestion-chip" onclick="sendSuggestion(this)">What does greenwash risk mean?</button>
+          <button class="suggestion-chip" onclick="sendSuggestion(this)">How are scores calculated?</button>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-area">
+          <div class="chat-input-wrap">
+            <textarea
+              class="chat-input"
+              id="chatInput"
+              placeholder="Ask about a company or TruthForge..."
+              rows="1"
+              onkeydown="handleChatKey(event)"
+              oninput="autoResize(this)">
+            </textarea>
+            <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 19-7z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="chat-input-hint">Press Enter to send · Shift+Enter for new line</div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div><!-- /app-wrapper -->
+
+<script>
+const API = 'https://truthforge-production.up.railway.app';
+
+/* ── View switching ── */
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'watchlist') loadWatchlist();
+  if (name === 'chat') loadCompaniesForChat();
+}
+
+/* ── Loading overlay ── */
+function showLoading() {
+  document.getElementById('loadingOverlay').classList.add('active');
+  const steps = ['step-signal','step-esg','step-claim','step-truth'];
+  steps.forEach(s => { const el = document.getElementById(s); el.classList.remove('active','done'); });
+  document.getElementById('step-signal').classList.add('active');
+
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i >= steps.length) { clearInterval(interval); return; }
+    document.getElementById(steps[i]).classList.remove('active');
+    document.getElementById(steps[i]).classList.add('done');
+    i++;
+    if (i < steps.length) document.getElementById(steps[i]).classList.add('active');
+  }, 18000); // advances every 18s to match real timing
+  return interval;
+}
+
+function hideLoading(interval) {
+  clearInterval(interval);
+  document.getElementById('loadingOverlay').classList.remove('active');
+  const steps = ['step-signal','step-esg','step-claim','step-truth'];
+  steps.forEach(s => { const el = document.getElementById(s); el.classList.remove('active'); el.classList.add('done'); });
+}
+
+/* ── Animate number ── */
+function animateNumber(el, target, suffix='') {
+  const start = 0;
+  const duration = 1000;
+  const startTime = performance.now();
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(start + (target - start) * eased) + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+/* ── Ring animation ── */
+function animateRing(score, color) {
+  const circumference = 364.4;
+  const ring = document.getElementById('ringFill');
+  const offset = circumference - (score / 100) * circumference;
+  ring.style.stroke = color;
+  ring.style.filter = `drop-shadow(0 0 8px ${color}80)`;
+  setTimeout(() => { ring.style.strokeDashoffset = offset; }, 100);
+}
+
+/* ── Score color ── */
+function scoreColor(s) {
+  if (s >= 70) return 'var(--emerald)';
+  if (s >= 45) return 'var(--amber)';
+  return 'var(--rose)';
+}
+
+/* ── Status badge class ── */
+function getStatusClass(status) {
+  const map = { verified: 'verified', partial: 'partial', contradicted: 'contradicted', unverifiable: 'unverifiable' };
+  return map[status] || 'unverifiable';
+}
+
+/* ── Verdict badge ── */
+function applyVerdict(verdict) {
+  const el = document.getElementById('verdictBadge');
+  el.textContent = verdict;
+  el.className = 'verdict-badge';
+  if (verdict?.toLowerCase().includes('trust')) el.classList.add('trustworthy');
+  else if (verdict?.toLowerCase().includes('risk') || verdict?.toLowerCase().includes('high')) el.classList.add('high-risk');
+  else el.classList.add('caution');
+}
+
+/* ── Greenwash risk badge ── */
+function applyGreenwashBadge(risk) {
+  const el = document.getElementById('greenwashRisk');
+  el.textContent = `Greenwash Risk: ${risk}`;
+  el.className = 'status-badge';
+  if (risk === 'low') el.classList.add('verified');
+  else if (risk === 'medium') el.classList.add('partial');
+  else el.classList.add('contradicted');
+}
+
+/* ── Trust level badge ── */
+function applyTrustBadge(level) {
+  const el = document.getElementById('trustLevel');
+  el.textContent = `Trust: ${level}`;
+  el.className = 'status-badge';
+  if (level === 'high') el.classList.add('verified');
+  else if (level === 'medium') el.classList.add('partial');
+  else el.classList.add('contradicted');
+}
+
+/* ── Error helpers ── */
+function showError(title, desc) {
+  document.getElementById('errorTitle').textContent = title;
+  document.getElementById('errorDesc').textContent  = desc;
+  document.getElementById('analysisError').style.display = 'flex';
+}
+function dismissError() {
+  document.getElementById('analysisError').style.display = 'none';
+}
+
+/* ── Main Analysis ── */
+async function runAnalysis() {
+  // Hide any previous error
+  dismissError();
+
+  const name = document.getElementById('companyName').value.trim();
+  const url  = document.getElementById('companyUrl').value.trim();
+
+  if (!name || !url) {
+    showError('Missing Information', 'Please enter both company name and URL.');
+    return;
+  }
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.textContent = 'Running…';
+
+  const interval = showLoading();
+
+  try {
+    const res = await fetch(`${API}/api/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, url })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      const detail  = errData.detail;
+      hideLoading(interval);
+      if (typeof detail === 'object' && detail.error === 'NAME_URL_MISMATCH') {
+        showError('⚠ Name / URL Mismatch', detail.message + ' ' + detail.example);
+      } else if (typeof detail === 'object' && detail.error === 'INVALID_URL') {
+        showError('⚠ Invalid URL', detail.message + ' Example: ' + detail.example);
+      } else {
+        showError('Analysis Failed', typeof detail === 'string' ? detail : JSON.stringify(detail));
+      }
+      return;
+    }
+
+    const data = await res.json();
+    hideLoading(interval);
+    renderResults(data);
+
+    // Auto-populate chat company dropdown
+    const chatSelect = document.getElementById('chatCompanySelect');
+    if (data.company?.id) {
+      const exists = [...chatSelect.options].find(o => o.value === data.company.id);
+      if (!exists) {
+        const opt = document.createElement('option');
+        opt.value = data.company.id;
+        opt.textContent = data.company.name;
+        chatSelect.appendChild(opt);
+      }
+    }
+  } catch (err) {
+    hideLoading(interval);
+    showError('Analysis Failed', err.message + ' — Make sure backend is running at localhost:8000');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Analyze';
+  }
+}
+
+function renderResults(data) {
+  document.getElementById('emptyState').style.display = 'none';
+  const rs = document.getElementById('resultsSection');
+  rs.style.display = 'block';
+
+  const signal    = data.signal    || {};
+  const esg       = data.esg       || {};
+  const claimwire = data.claimwire || {};
+  const truthScore = data.truth_score || 0;
+
+  /* TruthScore Hero */
+  const color = scoreColor(truthScore);
+  animateRing(truthScore, color);
+  const numEl = document.getElementById('truthScoreNum');
+  numEl.style.color = color;
+  animateNumber(numEl, truthScore);
+
+  document.getElementById('companyNameDisplay').textContent = data.company?.name || name;
+  document.getElementById('summaryText').textContent = data.summary || '—';
+  applyVerdict(data.verdict || 'Caution Advised');
+
+  document.getElementById('confidenceVal').textContent = (data.confidence || 0) + '%';
+  document.getElementById('biggestRisk').textContent = data.biggest_risk || '—';
+
+  /* Use case tags */
+  const tagSales  = document.getElementById('tagSales');
+  const tagInvest = document.getElementById('tagInvest');
+  const tagVendor = document.getElementById('tagVendor');
+  tagSales.className  = 'use-case-tag' + (data.use_for_sales     ? ' active-sales'   : '');
+  tagInvest.className = 'use-case-tag' + (data.use_for_investment ? ' active-invest'  : '');
+  tagVendor.className = 'use-case-tag' + (data.use_for_vendor    ? ' active-vendor'  : '');
+  tagSales.textContent  = (data.use_for_sales     ? '✓ ' : '') + 'Sales';
+  tagInvest.textContent = (data.use_for_investment ? '✓ ' : '') + 'Investment';
+  tagVendor.textContent = (data.use_for_vendor    ? '✓ ' : '') + 'Vendor';
+
+  /* Signal Engine */
+  const ss = signal.signal_score || 0;
+  const signalEl = document.getElementById('signalScore');
+  signalEl.style.color = scoreColor(ss);
+  animateNumber(signalEl, ss);
+  setTimeout(() => { document.getElementById('signalBar').style.width = ss + '%'; }, 100);
+  document.getElementById('fundingStrength').textContent = (signal.breakdown?.funding_strength || 0) + '/100';
+  document.getElementById('hiringStrength').textContent  = (signal.breakdown?.hiring_strength  || 0) + '/100';
+  document.getElementById('execStrength').textContent    = (signal.breakdown?.exec_strength    || 0) + '/100';
+  document.getElementById('newsStrength').textContent    = (signal.breakdown?.news_strength    || 0) + '/100';
+  document.getElementById('signalTopSignal').textContent = signal.top_signal ? '🔍 ' + signal.top_signal : '';
+
+  /* ESG Engine */
+  const is = esg.integrity_score || 0;
+  const intEl = document.getElementById('integrityScore');
+  intEl.style.color = scoreColor(is);
+  animateNumber(intEl, is);
+  setTimeout(() => { document.getElementById('esgBar').style.width = is + '%'; }, 100);
+  document.getElementById('envScore').textContent    = (esg.breakdown?.environmental || 0) + '/100';
+  document.getElementById('socialScore').textContent = (esg.breakdown?.social        || 0) + '/100';
+  document.getElementById('govScore').textContent    = (esg.breakdown?.governance     || 0) + '/100';
+  applyGreenwashBadge(esg.greenwash_risk || 'medium');
+
+  /* ClaimWire Engine */
+  const vs = claimwire.verification_score || 0;
+  const verEl = document.getElementById('verificationScore');
+  verEl.style.color = scoreColor(vs);
+  animateNumber(verEl, vs);
+  setTimeout(() => { document.getElementById('claimBar').style.width = vs + '%'; }, 100);
+  const sb = claimwire.status_breakdown || {};
+  document.getElementById('claimVerified').textContent     = sb.verified     || 0;
+  document.getElementById('claimPartial').textContent      = sb.partial      || 0;
+  document.getElementById('claimContradicted').textContent = sb.contradicted || 0;
+  document.getElementById('claimUnverifiable').textContent = sb.unverifiable || 0;
+  applyTrustBadge(claimwire.overall_trust_level || 'medium');
+
+  /* Claims table */
+  const tbody = document.getElementById('claimsTableBody');
+  const claims = claimwire.verified_claims || [];
+  if (claims.length > 0) {
+    tbody.innerHTML = claims.map(c => `
+      <tr>
+        <td><div class="claim-text">${c.claim || '—'}</div><div style="font-size:10px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace">${c.evidence_summary || ''}</div></td>
+        <td><span class="status-badge ${getStatusClass(c.status)}">${c.status || '—'}</span></td>
+        <td><span class="confidence-chip">${c.confidence || 0}%</span></td>
+      </tr>
+    `).join('');
+  } else {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:24px;font-size:12px">No claims data available</td></tr>';
+  }
+
+  /* Evidence */
+  const evidenceEl = document.getElementById('evidenceList');
+  const allEvidence = [
+    ...(signal.evidence    || []).slice(0,2),
+    ...(esg.evidence       || []).slice(0,2),
+    ...(claimwire.verified_claims || []).filter(c => c.evidence_url).slice(0,2).map(c => ({
+      category: 'claimwire', title: c.claim, url: c.evidence_url
+    }))
+  ];
+
+  if (allEvidence.length > 0) {
+    evidenceEl.innerHTML = allEvidence.map(e => `
+      <div class="evidence-item">
+        <span class="evidence-category">${e.category || 'source'}</span>
+        <div class="evidence-text">
+          <div class="evidence-title">${e.title || '—'}</div>
+          <a href="${e.url || '#'}" target="_blank" class="evidence-link">${e.url || '—'}</a>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    evidenceEl.innerHTML = '<div class="empty-state" style="padding:24px"><div class="empty-desc">No evidence sources available</div></div>';
+  }
+}
+
+/* ── Individual Engine Test ── */
+async function runEngine(engine) {
+  const id = document.getElementById('engineCompanyId').value.trim();
+  if (!id) { alert('Please enter a Company ID'); return; }
+  const pre = document.getElementById('engineResponse');
+  pre.textContent = 'Running...';
+  try {
+    const res = await fetch(`${API}/api/${engine}/${id}`, { method: 'POST' });
+    const data = await res.json();
+    pre.textContent = JSON.stringify(data, null, 2);
+  } catch (err) {
+    pre.textContent = 'Error: ' + err.message;
+  }
+}
+
+/* ── Watchlist ── */
+async function loadWatchlist() {
+  const container = document.getElementById('watchlistContainer');
+  container.innerHTML = '<div class="empty-state"><div class="empty-title" style="font-size:13px;color:var(--text3)">Loading…</div></div>';
+  try {
+    const res  = await fetch(`${API}/api/companies`);
+    const data = await res.json();
+    const companies = data.companies || [];
+
+    if (companies.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17h4a2 2 0 002-2V5a2 2 0 00-2-2h-4M12 12v9M8 12h8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="empty-title">No companies yet</div><div class="empty-desc">Analyze a company from the Dashboard to add it to your watchlist.</div></div>';
+      return;
+    }
+
+    container.innerHTML = companies.map(item => {
+      const score = item.scores?.truth_score;
+      const scoreClass = score == null ? '' : score >= 70 ? 'high' : score >= 45 ? 'mid' : 'low';
+      return `
+        <div class="watchlist-item" onclick="loadCompanyFromWatchlist('${item.company.id}','${item.company.name}','${item.company.url}')">
+          <div>
+            <div class="watchlist-name">${item.company.name}</div>
+            <div class="watchlist-url">${item.company.url}</div>
+            <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px">
+              Last analyzed: ${item.scores?.updated_at ? new Date(item.scores.updated_at).toLocaleDateString() : 'Never'}
+            </div>
+          </div>
+          ${score != null
+            ? `<span class="score-pill ${scoreClass}">${score}</span>`
+            : `<span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">Not analyzed</span>`
+          }
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-desc" style="color:var(--rose)">Failed to load: ${err.message}</div></div>`;
+  }
+}
+
+function loadCompanyFromWatchlist(id, name, url) {
+  document.getElementById('companyName').value = name;
+  document.getElementById('companyUrl').value  = url;
+  switchView('dashboard');
+}
+
+/* ── Enter key on inputs ── */
+document.getElementById('companyUrl').addEventListener('keydown', e => { if (e.key === 'Enter') runAnalysis(); });
+document.getElementById('companyName').addEventListener('keydown', e => { if (e.key === 'Enter') runAnalysis(); });
+
+/* ══════════════════════════════════════════════
+   CHAT
+══════════════════════════════════════════════ */
+let chatHistory          = [];
+let selectedCompanyId    = null;
+let selectedCompanyName  = null;
+let chatCompaniesLoaded  = false;
+
+async function loadCompaniesForChat() {
+  if (chatCompaniesLoaded) return;
+  try {
+    const res  = await fetch(`${API}/api/companies`);
+    const data = await res.json();
+    const select = document.getElementById('chatCompanySelect');
+    (data.companies || []).forEach(item => {
+      // avoid duplicates
+      if ([...select.options].find(o => o.value === item.company.id)) return;
+      const opt = document.createElement('option');
+      opt.value    = item.company.id;
+      opt.textContent = item.company.name;
+      select.appendChild(opt);
+    });
+    chatCompaniesLoaded = true;
+  } catch(e) {
+    console.log('Could not load companies for chat');
+  }
+}
+
+function updateChatContext() {
+  const select   = document.getElementById('chatCompanySelect');
+  const subtitle = document.getElementById('chatContext');
+  selectedCompanyId   = select.value || null;
+  selectedCompanyName = select.options[select.selectedIndex]?.text;
+
+  if (selectedCompanyId) {
+    subtitle.textContent = `Analyzing ${selectedCompanyName}`;
+    updateSuggestionsForCompany(selectedCompanyName);
+  } else {
+    subtitle.textContent = 'General Mode — No company selected';
+    resetSuggestions();
+  }
+  clearChat();
+}
+
+function updateSuggestionsForCompany(name) {
+  document.getElementById('chatSuggestions').innerHTML = `
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What is ${name}'s TruthScore?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">Is ${name} trustworthy for investment?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What are ${name}'s ESG risks?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What claims were contradicted?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">Should I use ${name} as a vendor?</button>
+  `;
+}
+
+function resetSuggestions() {
+  document.getElementById('chatSuggestions').innerHTML = `
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What is a TruthScore?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">How does ClaimWire work?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What does greenwash risk mean?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">How are scores calculated?</button>
+  `;
+}
+
+function sendSuggestion(btn) {
+  document.getElementById('chatInput').value = btn.textContent.trim();
+  sendChatMessage();
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChatMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function getTime() {
+  return new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+}
+
+function addMessage(content, role) {
+  const messages = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `chat-message ${role}`;
+  const initial = role === 'ai' ? '⬡' : 'K';
+  div.innerHTML = `
+    <div class="message-avatar ${role}-avatar">${initial}</div>
+    <div class="message-bubble ${role}-bubble">
+      ${content}
+      <div class="message-time">${getTime()}</div>
+    </div>
+  `;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function addTypingIndicator() {
+  const messages = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-message ai';
+  div.id = 'typingIndicator';
+  div.innerHTML = `
+    <div class="message-avatar ai-avatar">⬡</div>
+    <div class="message-bubble ai-bubble typing-indicator">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+  `;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+async function sendChatMessage() {
+  const input   = document.getElementById('chatInput');
+  const message = input.value.trim();
+  if (!message) return;
+
+  const btn = document.getElementById('chatSendBtn');
+  btn.disabled = true;
+  input.value  = '';
+  input.style.height = 'auto';
+
+  document.getElementById('chatSuggestions').style.display = 'none';
+  addMessage(message, 'user');
+  chatHistory.push({role: 'user', content: message});
+  addTypingIndicator();
+
+  try {
+    let res;
+    if (selectedCompanyId) {
+      res = await fetch(`${API}/api/chat/${selectedCompanyId}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message}),
+      });
+    } else {
+      res = await fetch(`${API}/api/chat/general`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message, history: chatHistory.slice(-6)}),
+      });
+    }
+
+    const data  = await res.json();
+    removeTypingIndicator();
+    const reply = data.response || 'Sorry, I could not process that.';
+    addMessage(reply, 'ai');
+    chatHistory.push({role: 'assistant', content: reply});
+
+  } catch(err) {
+    removeTypingIndicator();
+    addMessage('Connection error. Make sure the backend is running at localhost:8000.', 'ai');
+  } finally {
+    btn.disabled = false;
+    input.focus();
+  }
+}
+
+function clearChat() {
+  const messages = document.getElementById('chatMessages');
+  chatHistory = [];
+  messages.innerHTML = `
+    <div class="chat-message ai">
+      <div class="message-avatar ai-avatar">⬡</div>
+      <div class="message-bubble ai-bubble">
+        <p>Chat cleared. ${selectedCompanyName
+          ? `Ask me anything about ${selectedCompanyName}.`
+          : 'How can I help you with TruthForge?'
+        }</p>
+        <div class="message-time">${getTime()}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('chatSuggestions').style.display = 'flex';
+}
+
+window.addEventListener('load', () => {
+  loadCompaniesForChat();
+});
+</script>
+</body>
+</html>
