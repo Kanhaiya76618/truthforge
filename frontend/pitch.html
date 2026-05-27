@@ -604,7 +604,7 @@
     const ld = document.getElementById('results-loading');
     const tbl = document.getElementById('results-table');
     try {
-      const res = await fetch('http://localhost:8000/api/companies');
+      const res = await fetch('https://truthforge-production.up.railway.app/api/companies');
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       const companies = data.companies || [];
