@@ -8,6 +8,185 @@
   <link rel="stylesheet" href="style.css">
   <!-- landing.css extends style.css for TruthForge layout -->
   <link rel="stylesheet" href="landing.css">
+  <style>
+    /* ── Logo Loading Animation ────────────────────────────── */
+    .logo-loading-wrap {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .logo-loading-img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      position: relative;
+      z-index: 3;
+      animation: logo-pulse 2s ease-in-out infinite;
+      filter: drop-shadow(0 0 20px rgba(0,229,255,0.5))
+              drop-shadow(0 0 40px rgba(16,185,129,0.3));
+    }
+
+    @keyframes logo-pulse {
+      0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 20px rgba(0,229,255,0.5))
+                drop-shadow(0 0 40px rgba(16,185,129,0.3));
+      }
+      50% {
+        transform: scale(1.05);
+        filter: drop-shadow(0 0 30px rgba(0,229,255,0.8))
+                drop-shadow(0 0 60px rgba(16,185,129,0.5));
+      }
+    }
+
+    .logo-loading-glow {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,229,255,0.1) 0%, transparent 70%);
+      z-index: 2;
+      animation: logo-pulse 2s ease-in-out infinite;
+    }
+
+    .logo-orbit-ring {
+      position: absolute;
+      border-radius: 50%;
+      border-style: dashed;
+      z-index: 1;
+    }
+
+    .logo-orbit-ring.ring-outer {
+      width: 170px;
+      height: 170px;
+      border: 1px dashed rgba(0,229,255,0.25);
+      animation: orbit-spin 12s linear infinite;
+    }
+
+    .logo-orbit-ring.ring-inner {
+      width: 130px;
+      height: 130px;
+      border: 1px dashed rgba(16,185,129,0.2);
+      animation: orbit-spin 8s linear infinite;
+      animation-direction: reverse;
+    }
+
+    @keyframes orbit-spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .logo-orbit-dot {
+      position: absolute;
+      border-radius: 50%;
+      z-index: 4;
+    }
+
+    .dot-1 {
+      width: 8px;
+      height: 8px;
+      background: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan);
+      animation: dot-orbit-1 6s linear infinite;
+    }
+
+    .dot-2 {
+      width: 6px;
+      height: 6px;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+      animation: dot-orbit-2 4s linear infinite;
+    }
+
+    @keyframes dot-orbit-1 {
+      from { transform: rotate(0deg) translateX(85px); }
+      to   { transform: rotate(360deg) translateX(85px); }
+    }
+
+    @keyframes dot-orbit-2 {
+      from { transform: rotate(0deg) translateX(65px); }
+      to   { transform: rotate(-360deg) translateX(65px); }
+    }
+
+    /* ── Resource Cards (New) ──────────────────────────────── */
+    .resource-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 32px;
+    }
+
+    .resource-card:hover {
+      border-color: rgba(0,229,255,0.45) !important;
+      box-shadow: 0 0 40px rgba(0,229,255,0.12), 0 8px 32px rgba(0,0,0,0.4) !important;
+    }
+
+    .resource-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .resource-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .resource-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      padding: 4px 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: #64748B;
+      letter-spacing: 0.1em;
+    }
+
+    .resource-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+      color: #F1F5F9;
+      font-weight: 600;
+      margin: 4px 0;
+    }
+
+    .resource-desc {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.73rem;
+      color: #94A3B8;
+      line-height: 1.8;
+      flex: 1;
+    }
+
+    .resource-link {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.73rem;
+      color: var(--cyan);
+      letter-spacing: 0.1em;
+      margin-top: auto;
+      transition: color 0.2s;
+      text-shadow: 0 0 10px rgba(0,229,255,0.3);
+      text-decoration: none;
+    }
+
+    .resource-card:hover .resource-link {
+      color: #4ADE80;
+      text-shadow: 0 0 10px rgba(74,222,128,0.4);
+    }
+  </style>
 </head>
 <body class="dark-theme">
 
@@ -20,74 +199,14 @@
   <!-- ═══════════════════════════════════════════════════════ LOADING SCREEN -->
   <div id="loading-screen">
     <div class="loader-graphic">
-      <!--
-        viewBox="0 0 100 100" so all shapes sit in a 0-100 coord space.
-        animateTransform rotates around the true centre: cx=50 cy=50.
-      -->
-      <svg class="loader-svg" viewBox="0 0 100 100">
-
-        <!-- Outer dashed orbital ring — rotates CW (CSS) -->
-        <circle class="orbit-ring ring-outer"
-          cx="50" cy="50" r="44"
-          fill="none" stroke="rgba(0,229,255,0.2)" stroke-width="0.8"
-          stroke-dasharray="3 6"/>
-
-        <!-- Inner dashed orbital ring — rotates CCW (CSS) -->
-        <circle class="orbit-ring ring-inner"
-          cx="50" cy="50" r="30"
-          fill="none" stroke="rgba(0,229,255,0.13)" stroke-width="0.6"
-          stroke-dasharray="2 5"/>
-
-        <!-- Outer dot orbits CW on outer ring, starting at top (50,6) -->
-        <g>
-          <circle cx="50" cy="6" r="2.5" fill="#00E5FF" opacity="0.95"/>
-          <animateTransform attributeName="transform"
-            type="rotate" from="0 50 50" to="360 50 50"
-            dur="6s" repeatCount="indefinite"/>
-        </g>
-
-        <!-- Inner dot orbits CCW on inner ring, starting at bottom (50,80) -->
-        <g>
-          <circle cx="50" cy="80" r="1.8" fill="#10B981" opacity="0.85"/>
-          <animateTransform attributeName="transform"
-            type="rotate" from="0 50 50" to="-360 50 50"
-            dur="9s" repeatCount="indefinite"/>
-        </g>
-
-        <!-- Outer hexagon — rotates CW via animateTransform -->
-        <polygon
-          points="50,12 80,29 80,64 50,81 20,64 20,29"
-          fill="none" stroke="#00E5FF" stroke-width="0.9">
-          <animateTransform attributeName="transform"
-            type="rotate" from="0 50 50" to="360 50 50"
-            dur="12s" repeatCount="indefinite"/>
-        </polygon>
-
-        <!-- Middle hexagon — rotates CCW -->
-        <polygon
-          points="50,20 72,33 72,59 50,72 28,59 28,33"
-          fill="none" stroke="rgba(0,229,255,0.4)" stroke-width="0.6">
-          <animateTransform attributeName="transform"
-            type="rotate" from="0 50 50" to="-360 50 50"
-            dur="18s" repeatCount="indefinite"/>
-        </polygon>
-
-        <!-- Inner diamond — static -->
-        <polygon
-          points="50,30 64,46 50,62 36,46"
-          fill="none" stroke="rgba(0,229,255,0.6)" stroke-width="0.7"/>
-
-        <!-- Cross-hairs -->
-        <line x1="50" y1="12" x2="50" y2="81"
-          stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-        <line x1="20" y1="29" x2="80" y2="64"
-          stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-        <line x1="80" y1="29" x2="20" y2="64"
-          stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-
-        <!-- Centre dot -->
-        <circle cx="50" cy="50" r="2.2" fill="white" opacity="0.9"/>
-      </svg>
+      <div class="logo-loading-wrap">
+        <div class="logo-orbit-ring ring-outer"></div>
+        <div class="logo-orbit-ring ring-inner"></div>
+        <div class="logo-orbit-dot dot-1"></div>
+        <div class="logo-orbit-dot dot-2"></div>
+        <img src="logo.png" alt="TruthForge" class="logo-loading-img"/>
+        <div class="logo-loading-glow"></div>
+      </div>
     </div>
 
     <div class="loader-text">
@@ -490,33 +609,54 @@
         </p>
 
         <div class="res-grid scroll-el">
-          <a href="https://github.com/Kanhaiya76618/truthforge" target="_blank" class="glass res-card">
-            <div class="res-top">
-              <div class="res-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26">
-                  <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+          <div class="resource-card glass">
+            <div class="resource-card-top">
+              <div class="resource-icon"
+                   style="background:rgba(16,185,129,0.1);color:var(--emerald)">
+                <svg width="20" height="20" fill="none"
+                     stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        stroke-width="1.8" stroke-linecap="round"/>
                 </svg>
               </div>
-              <span class="res-badge mono">REPOSITORY</span>
+              <span class="resource-badge">PDF</span>
             </div>
-            <h3 class="res-title mono">SOURCE CODE</h3>
-            <p class="card-p mono">Full open-source implementation of all 3 engines, FastAPI backend, and frontend.</p>
-            <span class="res-link mono">VIEW_REPOSITORY →</span>
-          </a>
+            <h3 class="resource-title">TECHNICAL WHITEPAPER</h3>
+            <p class="resource-desc">
+              Deep dive into TruthForge architecture —
+              SignalForge, GreenwashGuard, ClaimWire engines,
+              parallel execution, and enterprise deployment.
+            </p>
+            <a href="whitepaper.html"
+               class="resource-link">
+              READ_WHITEPAPER →
+            </a>
+          </div>
 
-          <a href="https://discord.com/channels/@me" target="_blank" class="glass res-card">
-            <div class="res-top">
-              <div class="res-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26">
-                  <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+          <div class="resource-card glass"
+               style="cursor:pointer"
+               onclick="window.location.href='pitch.html'">
+            <div class="resource-card-top">
+              <div class="resource-icon"
+                   style="background:rgba(245,158,11,0.1);color:var(--amber)">
+                <svg width="20" height="20" fill="none"
+                     stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+                        stroke-width="1.8" stroke-linecap="round"/>
                 </svg>
               </div>
-              <span class="res-badge mono">COMMUNITY</span>
+              <span class="resource-badge">PRESENTATION</span>
             </div>
-            <h3 class="res-title mono">JOIN DISCORD</h3>
-            <p class="card-p mono">Connect with the builder, ask questions, and follow TruthForge development in real-time.</p>
-            <span class="res-link mono">JOIN_SERVER →</span>
-          </a>
+            <h3 class="resource-title">INTERACTIVE PITCH DECK</h3>
+            <p class="resource-desc">
+              Our vision for enterprise verification intelligence,
+              hackathon goals, market opportunity, and the
+              TruthForge roadmap.
+            </p>
+            <a href="pitch.html" class="resource-link">
+              VIEW_DOCUMENT →
+            </a>
+          </div>
         </div>
 
         <div class="built-with scroll-el">
