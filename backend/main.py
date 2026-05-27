@@ -1,11 +1,18 @@
 import sys
 import os
 
-# Ensure the project root (truthforge/) is on sys.path so `engines.*` is importable
-# regardless of whether the server is launched from backend/ or from the project root.
-_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Add project root to path so engines/ is found
+# Works both locally and on Railway
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+_project_root = os.path.dirname(_current_dir)
+
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
+
+if _current_dir not in sys.path:
+    sys.path.insert(0, _current_dir)
+
+# Now engines/ can be imported from project root
 
 import asyncio
 import sentry_sdk
