@@ -1617,12 +1617,24 @@ async function runEngine(engine) {
 
 /* ── Watchlist ── */
 async function loadWatchlist() {
+  const btn = document.querySelector('#view-watchlist .btn-analyze');
+  if (btn) {
+    btn.textContent = 'Refreshing...';
+    btn.disabled = true;
+  }
+
   const container = document.getElementById('watchlistContainer');
   container.innerHTML = '<div class="empty-state"><div class="empty-title" style="font-size:13px;color:var(--text3)">Loading…</div></div>';
   try {
     const res  = await fetch(`${API}/api/companies`);
     const data = await res.json();
     const companies = data.companies || [];
+    // Sort by latest updated_at — newest first
+    companies.sort((a, b) => {
+      const dateA = new Date(a.scores?.updated_at || a.company?.created_at || 0);
+      const dateB = new Date(b.scores?.updated_at || b.company?.created_at || 0);
+      return dateB - dateA;
+    });
 
     if (companies.length === 0) {
       container.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17h4a2 2 0 002-2V5a2 2 0 00-2-2h-4M12 12v9M8 12h8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="empty-title">No companies yet</div><div class="empty-desc">Analyze a company from the Dashboard to add it to your watchlist.</div></div>';
@@ -1650,6 +1662,11 @@ async function loadWatchlist() {
     }).join('');
   } catch (err) {
     container.innerHTML = `<div class="empty-state"><div class="empty-desc" style="color:var(--rose)">Failed to load: ${err.message}</div></div>`;
+  } finally {
+    if (btn) {
+      btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> REFRESH`;
+      btn.disabled = false;
+    }
   }
 }
 
