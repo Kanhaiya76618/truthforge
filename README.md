@@ -24,6 +24,20 @@ TruthForge is an autonomous enterprise verification intelligence platform. Enter
 
 > *"The web already knows which companies are telling the truth. TruthForge just asks it."*
 
+### Technical whitepaper:- [Truthforge-technical_whitepaper](https://truthforge-iota.vercel.app/whitepaper.html)
+
+A deep technical dive into TruthForge's architecture — 
+covering the three parallel AI engines, Bright Data 
+web data pipeline, asyncio execution model, TruthScore 
+algorithm, and enterprise deployment considerations.
+
+### Pitch Deck :- [Truthforge-Pitch_deck](https://truthforge-iota.vercel.app/pitch.html)
+
+An interactive 10-slide presentation covering the 
+problem, solution, three engines, architecture, 
+Bright Data integration, live results, industry 
+applications, workers system, roadmap, and vision.
+
 ### Real Results
 
 | Company | Signal | ESG | Claims | TruthScore | Verdict |
