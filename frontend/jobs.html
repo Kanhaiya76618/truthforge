@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SignalJobs — TruthForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   CSS VARIABLES — identical to dashboard.html
+═══════════════════════════════════════════════════════════ */
+:root {
+  --cyan:         #00E5FF;
+  --purple:       #7C3AED;
+  --obsidian:     #0B0E14;
+  --emerald:      #10B981;
+  --crimson:      #EF4444;
+  --amber:        #F59E0B;
+  --blue:         #3B82F6;
+  --rose:         #F43F5E;
+  --text:         #F1F5F9;
+  --text2:        #94A3B8;
+  --text3:        #475569;
+  --border:       rgba(255,255,255,0.06);
+  --radius:       14px;
+  --radius-sm:    8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: #0B0E14;
+  color: #F1F5F9;
+  font-family: 'Inter', sans-serif;
+  background-image:
+    radial-gradient(circle at 0% 0%,    rgba(0,229,255,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(124,58,237,0.06) 0%, transparent 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Noise texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Animated grid overlay */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: grid-pan 20s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-wrapper { position: relative; z-index: 1; }
+
+/* ═══════════════════════════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════════════════════════ */
+.app-navbar {
+  background: rgba(11,14,20,0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,229,255,0.08);
+  position: sticky;
+  top: 0; z-index: 100;
+  height: 64px; padding: 0 40px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.nav-brand { display: flex; align-items: center; gap: 12px; }
+
+.logo-mark {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 12px;
+  color: #0B0E14; letter-spacing: -0.5px; flex-shrink: 0;
+}
+
+.logo-text { display: flex; flex-direction: column; line-height: 1.2; }
+.logo-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 800;
+  letter-spacing: 0.05em; color: var(--text);
+}
+.logo-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 0.15em; color: var(--cyan); opacity: 0.7;
+}
+
+.page-heading {
+  text-align: center;
+}
+.page-heading-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px; font-weight: 800;
+  color: var(--text); display: flex; align-items: center; gap: 7px;
+}
+.page-heading-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--cyan); opacity: 0.7; margin-top: 2px;
+}
+
+.back-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.5); text-decoration: none;
+  padding: 6px 14px; border-radius: 7px;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: color 0.2s, border-color 0.2s;
+}
+.back-link:hover { color: var(--cyan); border-color: rgba(0,229,255,0.3); }
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════════════════════ */
+.app-main {
+  padding: 32px 48px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════════════════════ */
+.card {
+  background: rgba(11,14,20,0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0,229,255,0.10);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+.card:hover {
+  border-color: rgba(0,229,255,0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,229,255,0.08);
+}
+.card-body { padding: 20px; }
+
+/* Search card */
+.search-section { margin-bottom: 28px; }
+.search-card {
+  background: rgba(11,14,20,0.6);
+  border: 1px solid rgba(0,229,255,0.10);
+  border-radius: 14px;
+  backdrop-filter: blur(16px);
+  padding: 20px 24px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INPUTS
+═══════════════════════════════════════════════════════════ */
+.input-group { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.input-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text3); font-weight: 500;
+}
+.input-field {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px; padding: 11px 16px;
+  color: #F1F5F9; font-family: 'Inter', sans-serif;
+  font-size: 14px; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.input-field::placeholder { color: var(--text3); }
+.input-field:focus {
+  border-color: rgba(0,229,255,0.4);
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.06);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BUTTON
+═══════════════════════════════════════════════════════════ */
+.btn-analyze {
+  background: var(--cyan);
+  color: #0B0E14;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 11px 28px; border-radius: 8px;
+  border: none;
+  box-shadow: 0 0 20px rgba(0,229,255,0.2);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: inline-flex; align-items: center; gap: 8px;
+  white-space: nowrap; text-decoration: none;
+}
+.btn-analyze:hover { transform: translateY(-1px); box-shadow: 0 0 28px rgba(0,229,255,0.35); }
+.btn-analyze:active { transform: translateY(0); }
+.btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ═══════════════════════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════════════════════ */
+.empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 64px 32px; text-align: center; gap: 12px;
+}
+.empty-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  background: rgba(0,229,255,0.06);
+  border: 1px solid rgba(0,229,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cyan); margin-bottom: 4px;
+}
+.empty-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); }
+.empty-desc  { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text3); max-width: 280px; line-height: 1.6; }
+
+/* ═══════════════════════════════════════════════════════════
+   KEYFRAMES
+═══════════════════════════════════════════════════════════ */
+@keyframes grid-pan {
+  0%   { background-position: 0 0; }
+  100% { background-position: 60px 60px; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fade-up 0.4s ease forwards; opacity: 0; }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .app-main { padding: 24px; }
+  .app-navbar { padding: 0 20px; }
+  .search-card { flex-wrap: wrap; }
+  .page-heading { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="app-wrapper">
+
+  <!-- Navbar -->
+  <nav class="app-navbar">
+    <div class="nav-brand">
+      <div class="logo-mark">TF</div>
+      <div class="logo-text">
+        <span class="logo-name">TRUTHFORGE</span>
+        <span class="logo-sub">BY_KANHAIYA</span>
+      </div>
+    </div>
+
+    <div class="page-heading">
+      <div class="page-heading-title">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" stroke-width="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        SignalJobs
+      </div>
+      <div class="page-heading-sub">Multi-source job intelligence</div>
+    </div>
+
+    <a href="dashboard.html" class="back-link">← Dashboard</a>
+  </nav>
+
+  <!-- Main -->
+  <main class="app-main">
+
+    <div class="search-section">
+      <div class="search-card">
+        <div class="input-group">
+          <label class="input-label">Company Name</label>
+          <input type="text" class="input-field" id="jobsCompany" placeholder="e.g. Tesla"/>
+        </div>
+        <button class="btn-analyze" id="jobsBtn" onclick="loadJobs()">Find Jobs</button>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin:4px 0 16px;text-transform:uppercase;letter-spacing:0.08em">
+      Powered by AI/ML API + Bright Data &middot; LinkedIn &middot; Indeed &middot; Glassdoor &middot; Careers
+    </div>
+
+    <div id="jobsContainer">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" stroke-width="1.8"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="empty-title">Search for jobs</div>
+        <div class="empty-desc">Enter a company name to find open positions across LinkedIn, Indeed, Glassdoor, and career pages.</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const API = (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:8000'
+  : 'https://truthforge-production.up.railway.app';
+
+async function loadJobs() {
+  const company = document.getElementById('jobsCompany').value.trim();
+  if (!company) { alert('Enter a company name'); return; }
+  const box = document.getElementById('jobsContainer');
+  const btn = document.getElementById('jobsBtn');
+  btn.disabled = true; btn.textContent = 'Searching...';
+  box.innerHTML = '<div class="empty-state"><div class="empty-title" style="font-size:13px;color:var(--text3)">Searching LinkedIn, Indeed, Glassdoor, Careers...</div></div>';
+  try {
+    const res = await fetch(`${API}/api/jobs/${encodeURIComponent(company)}`);
+    const data = await res.json();
+    const jobs = data.jobs || [];
+    if (!jobs.length) {
+      box.innerHTML = '<div class="empty-state"><div class="empty-desc">No jobs found. Try another company.</div></div>';
+      return;
+    }
+    box.innerHTML = jobs.map((j,i) => `
+      <div class="card animate-in" style="margin-bottom:12px;animation-delay:${i * 0.05}s">
+        <div class="card-body" style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:14px;font-weight:600;color:var(--text)">${j.title||'Role'}</div>
+            <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px">
+              ${j.source||'Web'} &middot; ${j.location||'—'}
+            </div>
+            <div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.5">${j.snippet||''}</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap">
+            <a href="${j.url||'#'}" target="_blank" class="btn-analyze" style="background:transparent!important;border:1px solid rgba(255,255,255,0.1)!important;color:var(--text2)!important;box-shadow:none!important">View Posting</a>
+            <button class="btn-analyze" onclick='openJobDetail(${JSON.stringify(j).replace(/'/g,"&#39;")}, "${company.replace(/"/g,'')}")'>AI Details</button>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    box.innerHTML = `<div class="empty-state"><div class="empty-desc" style="color:var(--rose)">Failed to load jobs: ${e.message}</div></div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Find Jobs';
+  }
+}
+
+function openJobDetail(job, company) {
+  const params = new URLSearchParams({
+    company, title: job.title||'', url: job.url||'', snippet: job.snippet||''
+  });
+  window.open('jobdetail.html?' + params.toString(), '_blank');
+}
+
+document.getElementById('jobsCompany').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadJobs();
+});
+</script>
+</body>
+</html>

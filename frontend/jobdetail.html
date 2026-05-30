@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job AI Brief — TruthForge SignalJobs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   CSS VARIABLES — identical to dashboard.html
+═══════════════════════════════════════════════════════════ */
+:root {
+  --cyan:         #00E5FF;
+  --purple:       #7C3AED;
+  --obsidian:     #0B0E14;
+  --emerald:      #10B981;
+  --crimson:      #EF4444;
+  --amber:        #F59E0B;
+  --blue:         #3B82F6;
+  --rose:         #F43F5E;
+  --text:         #F1F5F9;
+  --text2:        #94A3B8;
+  --text3:        #475569;
+  --border:       rgba(255,255,255,0.06);
+  --radius:       14px;
+  --radius-sm:    8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: #0B0E14;
+  color: #F1F5F9;
+  font-family: 'Inter', sans-serif;
+  background-image:
+    radial-gradient(circle at 0% 0%,    rgba(0,229,255,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(124,58,237,0.06) 0%, transparent 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Noise texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Animated grid overlay */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: grid-pan 20s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-wrapper { position: relative; z-index: 1; }
+
+/* ═══════════════════════════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════════════════════════ */
+.app-navbar {
+  background: rgba(11,14,20,0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,229,255,0.08);
+  position: sticky;
+  top: 0; z-index: 100;
+  height: 64px; padding: 0 40px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.nav-brand { display: flex; align-items: center; gap: 12px; }
+
+.logo-mark {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 12px;
+  color: #0B0E14; letter-spacing: -0.5px; flex-shrink: 0;
+}
+
+.logo-text { display: flex; flex-direction: column; line-height: 1.2; }
+.logo-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 800;
+  letter-spacing: 0.05em; color: var(--text);
+}
+.logo-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 0.15em; color: var(--cyan); opacity: 0.7;
+}
+
+.nav-center-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 800; color: var(--text);
+  display: flex; align-items: center; gap: 7px;
+}
+
+.back-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.5); text-decoration: none;
+  padding: 6px 14px; border-radius: 7px;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: color 0.2s, border-color 0.2s;
+}
+.back-link:hover { color: var(--cyan); border-color: rgba(0,229,255,0.3); }
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════════════════════ */
+.app-main {
+  padding: 32px 48px 48px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════════════════════ */
+.card {
+  background: rgba(11,14,20,0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0,229,255,0.10);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.2s;
+  margin-bottom: 16px;
+}
+.card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--text3); font-weight: 500;
+}
+.card-body { padding: 20px; }
+
+/* ═══════════════════════════════════════════════════════════
+   BUTTON
+═══════════════════════════════════════════════════════════ */
+.btn-analyze {
+  background: var(--cyan);
+  color: #0B0E14;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 11px 28px; border-radius: 8px;
+  border: none;
+  box-shadow: 0 0 20px rgba(0,229,255,0.2);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: inline-flex; align-items: center; gap: 8px;
+  white-space: nowrap; text-decoration: none;
+}
+.btn-analyze:hover { transform: translateY(-1px); box-shadow: 0 0 28px rgba(0,229,255,0.35); }
+.btn-analyze:active { transform: translateY(0); }
+
+/* ═══════════════════════════════════════════════════════════
+   LOADER
+═══════════════════════════════════════════════════════════ */
+.loader-wrap {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 16px;
+  padding: 56px 32px; text-align: center;
+}
+.loader-ring {
+  width: 48px; height: 48px;
+  border: 3px solid rgba(0,229,255,0.15);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.loader-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text3);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DETAIL COMPONENTS
+═══════════════════════════════════════════════════════════ */
+.detail-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.detail-list li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; color: var(--text2); line-height: 1.55;
+  font-family: 'Inter', sans-serif;
+}
+.detail-list li::before {
+  content: '›';
+  color: var(--cyan); font-size: 16px; font-weight: 700;
+  flex-shrink: 0; line-height: 1.3;
+}
+
+/* What it signals — highlighted box */
+.signal-box {
+  background: rgba(0,229,255,0.05);
+  border: 1px solid rgba(0,229,255,0.15);
+  border-left: 3px solid var(--cyan);
+  border-radius: 10px; padding: 18px 20px;
+}
+.signal-box-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--cyan);
+  margin-bottom: 10px; font-weight: 700;
+}
+.signal-box-text {
+  font-size: 14px; color: var(--text); line-height: 1.65;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.badge-cyan    { background: rgba(0,229,255,0.1);  color: var(--cyan);    border: 1px solid rgba(0,229,255,0.2);   }
+.badge-amber   { background: rgba(245,158,11,0.1); color: var(--amber);   border: 1px solid rgba(245,158,11,0.2);  }
+.badge-emerald { background: rgba(16,185,129,0.1); color: var(--emerald); border: 1px solid rgba(16,185,129,0.2);  }
+.badge-rose    { background: rgba(244,63,94,0.1);  color: var(--rose);    border: 1px solid rgba(244,63,94,0.2);   }
+
+/* Two-column grid — collapses on mobile */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KEYFRAMES
+═══════════════════════════════════════════════════════════ */
+@keyframes grid-pan {
+  0%   { background-position: 0 0; }
+  100% { background-position: 60px 60px; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in { animation: fade-up 0.4s ease forwards; opacity: 0; }
+.animate-in:nth-child(1) { animation-delay: 0.05s; }
+.animate-in:nth-child(2) { animation-delay: 0.10s; }
+.animate-in:nth-child(3) { animation-delay: 0.15s; }
+.animate-in:nth-child(4) { animation-delay: 0.20s; }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .app-main { padding: 20px; }
+  .app-navbar { padding: 0 20px; }
+  .nav-center-label { display: none; }
+  .detail-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="app-wrapper">
+
+  <!-- Navbar -->
+  <nav class="app-navbar">
+    <div class="nav-brand">
+      <div class="logo-mark">TF</div>
+      <div class="logo-text">
+        <span class="logo-name">TRUTHFORGE</span>
+        <span class="logo-sub">BY_KANHAIYA</span>
+      </div>
+    </div>
+
+    <div class="nav-center-label">
+      <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke-width="2"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke-width="2"/></svg>
+      Job AI Brief
+    </div>
+
+    <a href="jobs.html" class="back-link">← Jobs</a>
+  </nav>
+
+  <!-- Main -->
+  <main class="app-main">
+
+    <!-- Job header — filled immediately from URL params -->
+    <div id="jobHeader" style="margin-bottom:20px"></div>
+
+    <!-- Detail content — filled after API call -->
+    <div id="detailContent"></div>
+
+    <!-- Footer -->
+    <div style="margin-top:32px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em">
+        AI brief generated by AI/ML API
+      </span>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const API = (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:8000'
+  : 'https://truthforge-production.up.railway.app';
+
+// Read URL params
+const params  = new URLSearchParams(window.location.search);
+const company = params.get('company') || '';
+const title   = params.get('title')   || '';
+const jobUrl  = params.get('url')     || '';
+const snippet = params.get('snippet') || '';
+
+// Set page title immediately
+document.title = `${title || 'Job'} — TruthForge SignalJobs`;
+
+// Render job header immediately (no API needed)
+document.getElementById('jobHeader').innerHTML = `
+  <div class="card" style="border-color:rgba(0,229,255,0.2);margin-bottom:0">
+    <div class="card-body">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap">
+        <div style="flex:1;min-width:240px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text3);margin-bottom:8px">
+            ${company ? `${company} &middot; ` : ''}Job AI Brief
+          </div>
+          <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--text);letter-spacing:-0.4px;line-height:1.2;margin-bottom:${snippet ? '12px' : '0'}">
+            ${title || 'Job Role'}
+          </div>
+          ${snippet ? `<div style="font-size:13px;color:var(--text2);line-height:1.6;max-width:560px;font-family:'Inter',sans-serif">${snippet}</div>` : ''}
+        </div>
+        ${jobUrl ? `
+        <a href="${jobUrl}" target="_blank" class="btn-analyze" style="background:transparent!important;border:1px solid rgba(0,229,255,0.3)!important;color:var(--cyan)!important;box-shadow:none!important;flex-shrink:0">
+          View Original Posting ↗
+        </a>` : ''}
+      </div>
+    </div>
+  </div>
+`;
+
+// Show loading spinner
+document.getElementById('detailContent').innerHTML = `
+  <div class="card">
+    <div class="loader-wrap">
+      <div class="loader-ring"></div>
+      <div class="loader-label">Generating AI brief…</div>
+    </div>
+  </div>
+`;
+
+// Fetch AI brief
+async function loadDetail() {
+  try {
+    const res = await fetch(`${API}/api/jobs/detail`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company, title, url: jobUrl, snippet }),
+    });
+    const data = await res.json();
+    const d = data.detail || {};
+
+    if (!Object.keys(d).length) {
+      document.getElementById('detailContent').innerHTML = `
+        <div class="card">
+          <div class="card-body" style="text-align:center;padding:40px">
+            <div style="font-size:13px;color:var(--text3);font-family:'Inter',sans-serif;line-height:1.6">
+              No AI brief available — the job data may be too sparse.<br>
+              Try opening the original posting for more context.
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const seniority  = d.seniority  || '';
+    const department = d.department || '';
+
+    // Pick badge colour by seniority
+    const senBadge = ['Senior', 'Lead', 'Executive'].includes(seniority) ? 'badge-amber'
+                   : ['Junior'].includes(seniority)                       ? 'badge-emerald'
+                   : 'badge-cyan';
+
+    document.getElementById('detailContent').innerHTML = `
+
+      <!-- Role overview -->
+      <div class="card animate-in">
+        <div class="card-header">
+          <span class="card-title">Role Overview</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${seniority  ? `<span class="badge ${senBadge}">${seniority}</span>`    : ''}
+            ${department ? `<span class="badge badge-cyan">${department}</span>` : ''}
+          </div>
+        </div>
+        <div class="card-body">
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;font-family:'Inter',sans-serif">${d.role_summary || '—'}</p>
+        </div>
+      </div>
+
+      <!-- Responsibilities + Requirements -->
+      <div class="detail-grid">
+        <div class="card animate-in">
+          <div class="card-header"><span class="card-title">Likely Responsibilities</span></div>
+          <div class="card-body">
+            <ul class="detail-list">
+              ${(d.likely_responsibilities || []).length
+                ? d.likely_responsibilities.map(r => `<li>${r}</li>`).join('')
+                : '<li style="color:var(--text3)">No data available</li>'}
+            </ul>
+          </div>
+        </div>
+        <div class="card animate-in">
+          <div class="card-header"><span class="card-title">Likely Requirements</span></div>
+          <div class="card-body">
+            <ul class="detail-list">
+              ${(d.likely_requirements || []).length
+                ? d.likely_requirements.map(r => `<li>${r}</li>`).join('')
+                : '<li style="color:var(--text3)">No data available</li>'}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Strategic signal highlight -->
+      ${d.what_it_signals ? `
+      <div class="animate-in">
+        <div class="signal-box">
+          <div class="signal-box-label">Strategic Signal</div>
+          <div class="signal-box-text">${d.what_it_signals}</div>
+        </div>
+      </div>` : ''}
+
+    `;
+  } catch(e) {
+    document.getElementById('detailContent').innerHTML = `
+      <div class="card">
+        <div class="card-body" style="text-align:center;padding:40px">
+          <div style="font-size:13px;color:var(--rose);font-family:'Inter',sans-serif;line-height:1.6">
+            Failed to load AI brief: ${e.message}
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+loadDetail();
+</script>
+</body>
+</html>
