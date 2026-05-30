@@ -5,7 +5,9 @@ if _dir not in sys.path:
     sys.path.insert(0, _dir)
 
 import asyncio
+import json
 import sentry_sdk
+from bs4 import BeautifulSoup
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -29,6 +31,10 @@ def is_port_in_use(port: int) -> bool:
 
 # ── Load environment variables ────────────────────────────────────────────────
 load_dotenv()
+
+# ── Local clients (imported after load_dotenv so env vars are set) ────────────
+from bright_data_client import bright_data
+from aiml_client import aiml_chat
 
 # ── Sentry setup ──────────────────────────────────────────────────────────────
 sentry_sdk.init(
@@ -686,6 +692,124 @@ async def get_all_alerts():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ── SignalJobs ────────────────────────────────────────────────────────────────
+@app.get("/api/jobs/{company_name}")
+async def get_jobs(company_name: str):
+    """Multi-source job listings, structured by AI/ML API."""
+    try:
+        li, indeed, gd, careers = await asyncio.gather(
+            bright_data.search_jobs(company_name, "linkedin"),
+            bright_data.search_jobs(company_name, "indeed"),
+            bright_data.search_jobs(company_name, "glassdoor"),
+            bright_data.search_jobs(company_name, "careers"),
+            return_exceptions=True,
+        )
+        def extract_clean(html, source):
+            if not isinstance(html, str) or not html:
+                return ""
+            try:
+                soup = BeautifulSoup(html, "html.parser")
+                links = []
+                for a in soup.find_all("a", href=True):
+                    href = a["href"]
+                    txt  = a.get_text(" ", strip=True)
+                    if txt and any(k in href for k in
+                            ["linkedin.com/jobs", "indeed.com", "glassdoor.com",
+                             "/careers", "/jobs", "job"]):
+                        links.append(f"{txt} | {href}")
+                text = soup.get_text(" ", strip=True)
+                return (f"[{source}] LINKS:\n" + "\n".join(links[:25])
+                        + f"\n\n[{source}] TEXT:\n" + text[:2500])
+            except Exception:
+                return html[:2000]
+
+        combined = "\n\n".join([
+            extract_clean(li,      "LinkedIn"),
+            extract_clean(indeed,  "Indeed"),
+            extract_clean(gd,      "Glassdoor"),
+            extract_clean(careers, "Careers"),
+        ])
+
+        prompt = f"""From these multi-source search results for {company_name},
+extract EVERY job-related listing you can find - including full-time roles,
+internships, research positions, contract, part-time, and entry-level.
+Be generous: if something looks like a role or a careers link, include it.
+Return ONLY a valid JSON array (no markdown):
+[{{"title":"...","source":"LinkedIn|Indeed|Glassdoor|Careers","location":"...","url":"...","snippet":"one line"}}]
+RESULTS:
+{combined[:9000]}"""
+        text = await aiml_chat(prompt, max_tokens=1800)
+        logger.info(f"[JOBS] AI/ML raw length: {len(text)} | combined SERP length: {len(combined)}")
+        jobs = []
+        if text:
+            cleaned = text.replace("```json", "").replace("```", "").strip()
+            match = re.search(r"\[.*\]", cleaned, re.DOTALL)
+            if match:
+                try:
+                    jobs = json.loads(match.group(0))
+                except Exception as e:
+                    logger.error(f"[JOBS] JSON parse failed: {e}")
+        if not jobs:
+            raw_all = " ".join([x for x in [li, indeed, gd, careers] if isinstance(x, str)])
+            if raw_all:
+                seen = set()
+                for u in re.findall(r'https?://[^\s"\'<>]+', raw_all):
+                    if any(s in u for s in ["linkedin.com/jobs", "indeed.com/viewjob",
+                                            "glassdoor.com/job", "/careers", "/jobs/"]):
+                        key = u.split("?")[0]
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        src = ("LinkedIn" if "linkedin" in u else "Indeed" if "indeed" in u
+                               else "Glassdoor" if "glassdoor" in u else "Careers")
+                        jobs.append({"title": f"{company_name} opening", "source": src,
+                                     "location": "", "url": u,
+                                     "snippet": "View posting for details"})
+                        if len(jobs) >= 12:
+                            break
+        logger.info(f"[JOBS] parsed {len(jobs)} jobs for {company_name}")
+        return {"company": company_name, "jobs": jobs,
+                "powered_by": "AI/ML API + Bright Data"}
+    except Exception as e:
+        logger.error(f"Jobs fetch error: {e}")
+        return {"company": company_name, "jobs": [], "error": str(e)}
+
+
+@app.post("/api/jobs/detail")
+async def job_detail(payload: dict):
+    """Deep AI brief for a single job, powered by AI/ML API."""
+    try:
+        title   = payload.get("title", "")
+        company = payload.get("company", "")
+        snippet = payload.get("snippet", "")
+        url     = payload.get("url", "")
+        prompt = f"""Analyze this job opening and return ONLY valid JSON (no markdown):
+Job title: {title}
+Company: {company}
+Context: {snippet}
+{{
+  "role_summary": "2 sentence summary",
+  "likely_responsibilities": ["...","...","..."],
+  "likely_requirements": ["...","...","..."],
+  "seniority": "Junior|Mid|Senior|Lead|Executive",
+  "department": "...",
+  "what_it_signals": "what hiring this role signals about the company's strategy/growth"
+}}"""
+        text = await aiml_chat(prompt, max_tokens=900)
+        detail = {}
+        if text:
+            cleaned = text.replace("```json", "").replace("```", "").strip()
+            try:
+                detail = json.loads(cleaned)
+            except Exception:
+                detail = {}
+        return {"title": title, "company": company, "url": url,
+                "detail": detail, "powered_by": "AI/ML API"}
+    except Exception as e:
+        logger.error(f"Job detail error: {e}")
+        return {"detail": {}, "error": str(e)}
+
 
 # ── Run server ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":

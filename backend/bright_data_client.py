@@ -101,6 +101,21 @@ class BrightDataClient:
         query = f"{company_name} CEO CFO appointed new hire"
         return await self.search_serp(query)
 
+    async def search_linkedin_jobs(self, company_name: str) -> str:
+        """Search LinkedIn job postings via SERP API (fast)."""
+        query = f"site:linkedin.com/jobs {company_name} hiring"
+        return await self.search_serp(query)
+
+    async def search_jobs(self, company_name: str, source: str) -> str:
+        """Search job listings from a specific source via SERP API."""
+        queries = {
+            "linkedin":  f"site:linkedin.com/jobs {company_name}",
+            "indeed":    f"site:indeed.com {company_name} jobs OR internship OR research",
+            "glassdoor": f"site:glassdoor.com {company_name} jobs OR internship",
+            "careers":   f"{company_name} careers jobs internship research entry level apply",
+        }
+        return await self.search_serp(queries.get(source, f"{company_name} jobs"))
+
     async def search_esg(self, company_name: str) -> str:
         """Search for ESG/sustainability claims."""
         query = f"{company_name} ESG sustainability carbon neutral report"
