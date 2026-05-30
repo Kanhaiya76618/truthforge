@@ -183,7 +183,7 @@
   <div class="abstract-box">
     <p>TruthForge is a real-time enterprise verification system that aggregates, cross-references, and scores corporate claims using three independent AI engines — SignalForge, GreenwashGuard, and ClaimWire — all powered by Bright Data's web intelligence infrastructure and Groq's Llama 3.3-70B model. The system produces a single composite TruthScore (0–100) enabling procurement teams, fund managers, compliance officers, and analysts to make data-backed decisions in under 30 seconds per company.</p>
   </div>
-  <p><strong>Keywords:</strong> ESG verification, AI trust scoring, greenwashing detection, corporate intelligence, Bright Data MCP, Groq Llama 3.3, FastAPI, Celery, Supabase</p>
+  <p><strong>Keywords:</strong> ESG verification, AI trust scoring, greenwashing detection, corporate intelligence, Bright Data MCP, Groq Llama 3.3, FastAPI, Celery, Supabase, AI/ML API (gpt-4o)</p>
 
   <div class="sec-divider"></div>
 
@@ -257,6 +257,37 @@
   <div class="sec-divider"></div>
 
   <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 3.4. SIGNALJOBS — HIRING INTELLIGENCE                  -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="sec-num">SECTION 3.4</div>
+  <h2 class="sec-title">SignalJobs — Multi-Source Hiring Intelligence Layer</h2>
+
+  <p>Job postings are among the earliest publicly observable signals of a company's strategic direction — typically preceding press releases, earnings guidance, and analyst coverage by weeks. When a company quietly opens ten machine-learning roles while publicly describing an AI initiative as concluded, that discrepancy is operationally significant. <strong>SignalJobs</strong> captures this layer by aggregating live listings across LinkedIn, Indeed, Glassdoor, and company career pages in a single parallelized query, transforming raw hiring data into strategic intelligence.</p>
+
+  <p><strong>Data Collection.</strong> SignalJobs uses Bright Data's SERP API to query all four sources simultaneously. Each query is constructed with the company name plus source-specific modifiers, returning result sets that include role title, seniority level, location, and posting recency. The SERP-based approach delivers sub-15-second response times without requiring a dedicated scraper per platform. A raw-URL fallback is implemented: when the SERP layer returns fewer than three results, the engine falls back to direct URL construction for each platform, ensuring results are never empty when the underlying web has data.</p>
+
+  <p><strong>AI Layer — AI/ML API (gpt-4o).</strong> SignalJobs is the only engine in TruthForge that uses AI/ML API's gpt-4o model rather than Groq Llama 3.3-70B. This is a deliberate architectural choice: gpt-4o's stronger instruction-following makes it better suited for structured data transformation — taking heterogeneous raw SERP snippets from four sources with differing formats and normalizing them into clean, consistently shaped role listings. <strong>Groq Llama 3.3-70B remains the AI for all three core verification engines and the TruthScore synthesis step;</strong> AI/ML API is scoped strictly to the SignalJobs layer. For each role, gpt-4o also generates a per-role intelligence brief describing what that specific hire signals about the company's strategic direction — for example, a surge in DevSecOps postings suggesting an upcoming compliance certification, or executive CFO searches indicating pre-IPO preparation.</p>
+
+  <p><strong>API Endpoints.</strong> Two endpoints expose the SignalJobs layer:</p>
+
+  <div class="code-block">
+<span class="cc"># Retrieve structured live listings for a company</span>
+<span class="ck">GET</span>  /api/jobs/<span class="cf">{company}</span>
+<span class="cc">→ { company, total_jobs, sources, jobs: [{ title, company, location, type, source, url }] }</span>
+
+<span class="cc"># Generate a per-role AI intelligence brief</span>
+<span class="ck">POST</span> /api/jobs/detail
+     body: { <span class="cs">"job_title"</span>: <span class="cs">"Senior DevSecOps Engineer"</span>, <span class="cs">"company_name"</span>: <span class="cs">"Tesla"</span> }
+<span class="cc">→ { brief, signals, implications }</span>
+  </div>
+
+  <p>The <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan);font-size:0.85em">GET /api/jobs/{company}</code> endpoint aggregates all sources, deduplicates listings by title and location, and returns them sorted by recency. The <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan);font-size:0.85em">POST /api/jobs/detail</code> endpoint invokes gpt-4o with the role title and company context, returning a structured intelligence brief scoped to that hire's strategic implications. Briefs are generated on-demand, so the initial listing load remains fast regardless of the total number of roles returned.</p>
+
+  <p><strong>Design Rationale.</strong> Separating SignalJobs from the three core engines rather than folding it into SignalForge preserves the TruthScore formula's integrity: job-posting volume is a leading indicator of business activity, but it does not directly measure corporate honesty or ESG compliance. Keeping it as a standalone intelligence layer means it can be queried independently, surfaced in the dashboard without triggering a full analysis, and extended with per-source deep-scraping in a future iteration without touching the core scoring pipeline.</p>
+
+  <div class="sec-divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
   <!-- 4. BRIGHT DATA INTEGRATION                            -->
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="sec-num">SECTION 4</div>
@@ -273,6 +304,7 @@
       <tr><td>Scraping Browser</td><td>JavaScript-rendered ESG dashboards, dynamic investor portals</td><td>GreenwashGuard</td><td>~8</td></tr>
       <tr><td>MCP Server</td><td>Direct AI-to-Bright Data queries inside the Groq pipeline</td><td>All engines</td><td>~5</td></tr>
       <tr><td>Web Scraper API</td><td>Structured extraction of PDFs, sustainability reports</td><td>ClaimWire</td><td>~10</td></tr>
+      <tr><td>SERP API</td><td>Multi-source job listing aggregation (LinkedIn, Indeed, Glassdoor, careers)</td><td>SignalJobs</td><td>~4 / query</td></tr>
     </tbody>
   </table>
 

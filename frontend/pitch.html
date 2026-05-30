@@ -179,7 +179,7 @@
 
 <div id="progress-bar"></div>
 <a href="index.html" id="back-link">← TRUTHFORGE</a>
-<div id="slide-counter">1 / 10</div>
+<div id="slide-counter">1 / 11</div>
 <button class="nav-arrow" id="btn-prev" onclick="changeSlide(-1)">‹</button>
 <button class="nav-arrow" id="btn-next" onclick="changeSlide(1)">›</button>
 
@@ -426,8 +426,40 @@
     </div>
   </section>
 
-  <!-- ══════════════════ SLIDE 8: LIVE RESULTS ══════════════════ -->
+  <!-- ══════════════════ SLIDE 8: SIGNALJOBS ══════════════════ -->
   <section class="slide" id="slide-8">
+    <div class="si">
+      <p class="lbl">BONUS ENGINE</p>
+      <h2 class="ttl">SignalJobs — Hiring <span style="color:var(--cyan)">Intelligence</span></h2>
+      <p class="sub">Live job postings are the earliest signal of where a company is really headed</p>
+      <div style="display:flex;flex-direction:column;gap:9px;width:100%">
+        <div class="bdcard">
+          <div class="bdico">🌐</div>
+          <div><div class="bdname">MULTI-SOURCE AGGREGATION</div><div class="bddesc">Pulls live postings across LinkedIn, Indeed, Glassdoor, and company careers pages in a single query.</div></div>
+          <div class="bdcalls">4 sources</div>
+        </div>
+        <div class="bdcard">
+          <div class="bdico">🤖</div>
+          <div><div class="bdname">POWERED BY AI/ML API</div><div class="bddesc">Structures raw scraped web data into clean, normalized role listings with titles, levels, and locations.</div></div>
+          <div class="bdcalls">AI/ML API</div>
+        </div>
+        <div class="bdcard">
+          <div class="bdico">📋</div>
+          <div><div class="bdname">EVERY ROLE TYPE</div><div class="bddesc">Full-time, internships, research, contract, and executive hires — complete headcount signals, not just senior roles.</div></div>
+          <div class="bdcalls">All levels</div>
+        </div>
+        <div class="bdcard">
+          <div class="bdico">💡</div>
+          <div><div class="bdname">ONE-CLICK AI BRIEF</div><div class="bddesc">Each listing links to an AI-generated brief: what this hire signals about the company's strategic direction.</div></div>
+          <div class="bdcalls">Per listing</div>
+        </div>
+      </div>
+      <p style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:rgba(255,255,255,0.22);letter-spacing:0.08em;text-align:center">Powered by AI/ML API + Bright Data</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════ SLIDE 9: LIVE RESULTS ══════════════════ -->
+  <section class="slide" id="slide-9">
     <div class="si">
       <p class="lbl">LIVE DATA</p>
       <h2 class="ttl">Real-Time <span style="color:var(--emerald)">Results</span></h2>
@@ -451,8 +483,8 @@
     </div>
   </section>
 
-  <!-- ══════════════════ SLIDE 9: USE CASES ══════════════════ -->
-  <section class="slide" id="slide-9">
+  <!-- ══════════════════ SLIDE 10: USE CASES ══════════════════ -->
+  <section class="slide" id="slide-10">
     <div class="si">
       <p class="lbl">MARKET OPPORTUNITY</p>
       <h2 class="ttl">Who <span style="color:var(--amber)">Buys</span> TruthForge?</h2>
@@ -499,8 +531,8 @@
     </div>
   </section>
 
-  <!-- ══════════════════ SLIDE 10: THANK YOU ══════════════════ -->
-  <section class="slide" id="slide-10">
+  <!-- ══════════════════ SLIDE 11: THANK YOU ══════════════════ -->
+  <section class="slide" id="slide-11">
     <canvas class="particle-canvas" id="pcv10"></canvas>
     <div class="watermark">TRUTHFORGE</div>
     <div class="si" style="align-items:center">
@@ -527,7 +559,7 @@
 </div>
 
 <script>
-  const TOTAL = 10;
+  const TOTAL = 11;
   let current = 1;
 
   function changeSlide(dir) {
@@ -541,8 +573,8 @@
     document.getElementById('btn-prev').disabled = (current === 1);
     document.getElementById('btn-next').disabled = (current === TOTAL);
     if (current === 6) restartTimeline();
-    if (current === 8) loadLiveResults();
-    if (current === 10) initParticles('pcv10', 60);
+    if (current === 9) loadLiveResults();
+    if (current === 11) initParticles('pcv10', 60);
   }
 
   document.addEventListener('keydown', e => {

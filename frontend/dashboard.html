@@ -915,6 +915,9 @@ body::before {
       <button class="nav-btn" id="nav-analyze"   onclick="switchView('analyze')">ANALYZE</button>
       <button class="nav-btn" id="nav-watchlist" onclick="switchView('watchlist')">WATCHLIST</button>
       <button class="nav-btn" id="nav-chat"      onclick="switchView('chat')">CHAT</button>
+      <button class="nav-btn" id="nav-jobs"      onclick="switchView('jobs')">
+        <svg style="margin-right:4px;vertical-align:middle" width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" stroke-width="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>JOBS
+      </button>
     </div>
 
     <div class="nav-actions">
@@ -991,6 +994,7 @@ body::before {
             </div>
           </div>
         </div>
+        <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;margin:-4px 0 12px">SignalJobs &mdash; live hiring intelligence across LinkedIn, Indeed, Glassdoor &amp; careers, powered by AI/ML API.</div>
         <div class="card animate-in">
           <div class="empty-state">
             <div class="empty-icon">
@@ -1268,11 +1272,29 @@ body::before {
       </div>
     </div>
 
+
+    <!-- ════════ JOBS VIEW ════════ -->
+    <div class="view" id="view-jobs">
+      <div class="search-section"><div class="search-card">
+        <div class="input-group">
+          <label class="input-label">Company Name</label>
+          <input type="text" class="input-field" id="jobsCompany" placeholder="e.g. Tesla"/>
+        </div>
+        <button class="btn-analyze" id="jobsBtn" onclick="loadJobs()">Find Jobs</button>
+      </div></div>
+      <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin:4px 0 16px;text-transform:uppercase;letter-spacing:0.08em">
+        Powered by AI/ML API + Bright Data &middot; LinkedIn &middot; Indeed &middot; Glassdoor &middot; Careers
+      </div>
+      <div id="jobsContainer"></div>
+    </div>
+
   </main>
 </div><!-- /app-wrapper -->
 
 <script>
-const API = 'https://truthforge-production.up.railway.app';
+const API = (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:8000'
+  : 'https://truthforge-production.up.railway.app';
 
 /* ── View switching ── */
 function switchView(name) {
@@ -1868,6 +1890,54 @@ function clearChat() {
 
 window.addEventListener('load', () => {
   loadCompaniesForChat();
+});
+
+/* ── SignalJobs ── */
+async function loadJobs() {
+  const company = document.getElementById('jobsCompany').value.trim();
+  if (!company) { alert('Enter a company name'); return; }
+  const box = document.getElementById('jobsContainer');
+  const btn = document.getElementById('jobsBtn');
+  btn.disabled = true; btn.textContent = 'Searching...';
+  box.innerHTML = '<div class="empty-state"><div class="empty-title" style="font-size:13px;color:var(--text3)">Searching LinkedIn, Indeed, Glassdoor, Careers...</div></div>';
+  try {
+    const res = await fetch(`${API}/api/jobs/${encodeURIComponent(company)}`);
+    const data = await res.json();
+    const jobs = data.jobs || [];
+    if (!jobs.length) {
+      box.innerHTML = '<div class="empty-state"><div class="empty-desc">No jobs found. Try another company.</div></div>';
+      return;
+    }
+    box.innerHTML = jobs.map((j,i) => `
+      <div class="card" style="margin-bottom:12px"><div class="card-body" style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${j.title||'Role'}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px">
+            ${j.source||'Web'} &middot; ${j.location||'—'}
+          </div>
+          <div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.5">${j.snippet||''}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <a href="${j.url||'#'}" target="_blank" class="btn-analyze" style="background:transparent!important;border:1px solid rgba(255,255,255,0.1)!important;color:var(--text2)!important;box-shadow:none!important;text-decoration:none">View Posting</a>
+          <button class="btn-analyze" onclick='openJobDetail(${JSON.stringify(j).replace(/'/g,"&#39;")}, "${company.replace(/"/g,'')}")'>AI Details</button>
+        </div>
+      </div></div>`).join('');
+  } catch(e) {
+    box.innerHTML = `<div class="empty-state"><div class="empty-desc" style="color:var(--rose)">Failed to load jobs: ${e.message}</div></div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Find Jobs';
+  }
+}
+
+function openJobDetail(job, company) {
+  const params = new URLSearchParams({
+    company, title: job.title||'', url: job.url||'', snippet: job.snippet||''
+  });
+  window.open('jobdetail.html?' + params.toString(), '_blank');
+}
+
+document.getElementById('jobsCompany').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadJobs();
 });
 </script>
 </body>
