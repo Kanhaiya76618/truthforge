@@ -7,6 +7,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.104-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![Bright Data](https://img.shields.io/badge/Bright_Data-MCP-00E5FF?style=for-the-badge)
 ![Groq](https://img.shields.io/badge/Groq-Llama_3.3_70B-F59E0B?style=for-the-badge)
+![AI/ML API](https://img.shields.io/badge/AI%2FML_API-GPT--4o-7C3AED?style=for-the-badge)
 ![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel)
 ![Railway](https://img.shields.io/badge/Railway-Deployed-purple?style=for-the-badge)
 
@@ -20,28 +21,23 @@
 
 ## What is TruthForge?
 
-TruthForge is an autonomous enterprise verification intelligence platform. Enter any company name and URL — TruthForge deploys **three specialized AI engines in parallel**, making **15+ real-time Bright Data API calls** across the live web, and returns a comprehensive **TruthScore (0-100)** in under 90 seconds.
+TruthForge is an autonomous enterprise verification intelligence platform. Enter any company name and URL — TruthForge deploys **three specialized AI engines in parallel**, making **15+ real-time Bright Data API calls** across the live web, and returns a comprehensive **TruthScore (0-100)** in 60-90 seconds. A dedicated **SignalJobs** layer adds live hiring intelligence on top.
 
 > *"The web already knows which companies are telling the truth. TruthForge just asks it."*
 
-### Technical whitepaper:- [Truthforge-technical_whitepaper](https://truthforge-iota.vercel.app/whitepaper.html)
+### Technical Whitepaper — [Truthforge Technical Whitepaper](https://truthforge-iota.vercel.app/whitepaper.html)
 
-A deep technical dive into TruthForge's architecture — 
-covering the three parallel AI engines, Bright Data 
-web data pipeline, asyncio execution model, TruthScore 
-algorithm, and enterprise deployment considerations.
+A deep technical dive into TruthForge's architecture — covering the three parallel AI engines, the SignalJobs hiring-intelligence layer, the Bright Data web data pipeline, the asyncio execution model, the TruthScore algorithm, and enterprise deployment considerations.
 
-### Pitch Deck :- [Truthforge-Pitch_deck](https://truthforge-iota.vercel.app/pitch.html)
+### Pitch Deck — [Truthforge Pitch Deck](https://truthforge-iota.vercel.app/pitch.html)
 
-An interactive 10-slide presentation covering the 
-problem, solution, three engines, architecture, 
-Bright Data integration, live results, industry 
-applications, workers system, roadmap, and vision.
+An interactive presentation covering the problem, solution, three engines, SignalJobs, architecture, Bright Data integration, the production workers system, live results, industry applications, roadmap, and vision.
 
 ### Real Results
 
 | Company | Signal | ESG | Claims | TruthScore | Verdict |
 |---------|--------|-----|--------|------------|---------|
+| IBM | 87 | 58 | 70 | **71** | Caution Advised |
 | Microsoft | 86 | 62 | 64 | **61** | Caution Advised |
 | Tesla | 74 | 58 | 56 | **63** | Caution Advised |
 
@@ -61,7 +57,7 @@ Enterprises lose **$12.9M annually** to unverified company claims:
 
 ## Three Engines
 
-### 📡 SignalForge — Buying Intent Engine (35% weight)
+### SignalForge — Buying Intent Engine (35% weight)
 Detects live buying signals from the web:
 - Job postings indicating growth
 - Funding announcements and valuations
@@ -71,7 +67,7 @@ Detects live buying signals from the web:
 
 **Output:** Signal Score (0-100) + top signal detected + recommendation
 
-### 🌿 GreenwashGuard — ESG Integrity Engine (35% weight)
+### GreenwashGuard — ESG Integrity Engine (35% weight)
 Verifies ESG claims against live evidence:
 - Sustainability reports and SEC ESG disclosures
 - Regulatory filings and certification databases
@@ -80,7 +76,7 @@ Verifies ESG claims against live evidence:
 
 **Output:** Integrity Score (0-100) + greenwash risk level (low/medium/high)
 
-### 🔍 ClaimWire — Claim Verification Engine (30% weight)
+### ClaimWire — Claim Verification Engine (30% weight)
 Cross-references every company claim:
 - Extracts verifiable claims from company's public presence
 - Searches 10+ live sources per claim
@@ -93,6 +89,23 @@ Cross-references every company claim:
 ```
 TruthScore = (Signal × 0.35) + (ESG × 0.35) + (Claims × 0.30)
 ```
+
+---
+
+## SignalJobs — Hiring Intelligence Layer
+
+Live job postings are the earliest signal of where a company is really headed — long before any press release. SignalJobs is a dedicated feature (separate from the three core engines) that turns public hiring data into intelligence.
+
+- **Multi-source scan** — pulls openings from LinkedIn, Indeed, Glassdoor, and company career pages in parallel via Bright Data's SERP API
+- **Every role type** — full-time, internships, research, contract, and executive positions
+- **Powered by AI/ML API** — the AI/ML API (GPT-4o) structures raw multi-source web data into clean, typed role listings
+- **One-click AI brief** — click any role to get an instant AI-generated brief on what that hire signals about the company's strategy
+
+> **AI provider separation:** Groq Llama 3.3-70B powers the three core engines and TruthScore synthesis. The AI/ML API is scoped specifically to SignalJobs (listing structuring + per-role briefs). This keeps the new dependency cleanly isolated.
+
+**Endpoints:** `GET /api/jobs/{company}` (structured listings) and `POST /api/jobs/detail` (single-role AI brief).
+
+Available as a tab inside the dashboard and as a standalone page (`jobs.html`), with role detail pages (`jobdetail.html`).
 
 ---
 
@@ -135,6 +148,10 @@ Engine  Engine  Engine           │
   ├── Auto re-analyze every 6h
   ├── Score drop alerts
   └── Health monitoring
+
+  SignalJobs (separate flow)
+  Company → Bright Data SERP (LinkedIn/Indeed/Glassdoor/Careers)
+          → AI/ML API (GPT-4o) → structured listings + briefs
 ```
 
 ---
@@ -149,14 +166,16 @@ Engine  Engine  Engine           │
 | Uvicorn | latest | ASGI server |
 | Pydantic | v2 | Data validation |
 | HTTPX | latest | Async HTTP client |
+| BeautifulSoup | latest | HTML parsing (SignalJobs) |
 | Loguru | latest | Structured logging |
 | Sentry | latest | Error monitoring |
 
 ### AI & Data
 | Technology | Purpose |
 |------------|---------|
-| Groq Llama 3.3-70B | AI synthesis and claim verification |
-| Bright Data SERP API | News and signal searches (8-12 calls/analysis) |
+| Groq Llama 3.3-70B | Core engine analysis + TruthScore synthesis |
+| AI/ML API (GPT-4o) | SignalJobs — listing structuring + role briefs |
+| Bright Data SERP API | News, signal, ESG, claim, and job searches |
 | Bright Data Web Unlocker | Protected page access (ESG reports, filings) |
 | Bright Data MCP Server | Direct AI-to-web integration |
 | Bright Data Scraping Browser | JavaScript-rendered pages |
@@ -184,8 +203,9 @@ Engine  Engine  Engine           │
 ```
 truthforge/
 ├── backend/
-│   ├── main.py                    # FastAPI app — 12 routes
+│   ├── main.py                    # FastAPI app — core + jobs routes
 │   ├── bright_data_client.py      # Bright Data API wrapper
+│   ├── aiml_client.py             # AI/ML API wrapper (SignalJobs)
 │   ├── requirements.txt           # Python dependencies
 │   ├── Procfile                   # Railway deployment
 │   ├── runtime.txt                # Python 3.11.9
@@ -202,12 +222,14 @@ truthforge/
 │       ├── celery_app.py          # Celery configuration
 │       ├── tasks.py               # Background task definitions
 │       ├── alerts.py              # Slack alert system
-│       └── scheduler.py          # Beat scheduler
+│       └── scheduler.py           # Beat scheduler
 ├── frontend/
 │   ├── index.html                 # Landing page
-│   ├── dashboard.html             # Main dashboard app
+│   ├── dashboard.html             # Main dashboard app (+ SignalJobs tab)
+│   ├── jobs.html                  # Standalone SignalJobs page
+│   ├── jobdetail.html             # AI job-brief detail page
 │   ├── pitch.html                 # Interactive pitch deck
-│   ├── whitepaper.html           # Technical whitepaper
+│   ├── whitepaper.html            # Technical whitepaper
 │   ├── landing.css                # Landing page styles
 │   ├── style.css                  # Shared design system
 │   ├── logo.png                   # TruthForge logo
@@ -236,7 +258,7 @@ Health check
 }
 ```
 
-#### `POST /api/analyze` ⭐ Main endpoint
+#### `POST /api/analyze` — Main endpoint
 One-shot analysis — always runs fresh, never cached
 ```json
 // Request
@@ -261,6 +283,45 @@ One-shot analysis — always runs fresh, never cached
 
 #### `GET /api/companies`
 List all analyzed companies with latest scores
+
+#### `GET /api/jobs/{company_name}` — SignalJobs
+Multi-source job listings, structured by the AI/ML API
+```json
+{
+  "company": "IBM",
+  "jobs": [
+    {
+      "title": "IBM Machine Learning jobs",
+      "source": "LinkedIn",
+      "location": "United States",
+      "url": "https://www.linkedin.com/jobs/...",
+      "snippet": "Today's top IBM Machine Learning jobs."
+    }
+  ],
+  "powered_by": "AI/ML API + Bright Data"
+}
+```
+
+#### `POST /api/jobs/detail` — SignalJobs
+AI-generated intelligence brief for a single role
+```json
+// Request
+{ "company": "IBM", "title": "...", "url": "...", "snippet": "..." }
+
+// Response
+{
+  "title": "...",
+  "detail": {
+    "role_summary": "...",
+    "likely_responsibilities": ["..."],
+    "likely_requirements": ["..."],
+    "seniority": "Senior",
+    "department": "...",
+    "what_it_signals": "..."
+  },
+  "powered_by": "AI/ML API"
+}
+```
 
 #### `POST /api/chat/{company_id}`
 AI chat about a specific company using its analysis data
@@ -314,6 +375,8 @@ BRIGHT_DATA_SERP_URL=https://api.brightdata.com/request
 BRIGHT_DATA_UNLOCKER_URL=https://api.brightdata.com/request
 BRIGHT_DATA_ZONE_SERP=serp_api1
 BRIGHT_DATA_ZONE_UNLOCKER=web_unlocker1
+AIML_API_KEY=your_aiml_api_key
+AIML_BASE_URL=https://api.aimlapi.com/v1
 SENTRY_DSN_BACKEND=your_sentry_dsn
 APP_ENV=development
 REDIS_URL=redis://localhost:6379/0
@@ -371,7 +434,7 @@ API available at `http://localhost:8000`
 API docs at `http://localhost:8000/docs`
 
 ### 6. Open the frontend
-Open `frontend/index.html` in your browser (no server needed).
+Open `frontend/index.html` in your browser (no server needed). The frontend auto-detects local vs. production and points to the right API.
 
 ---
 
@@ -400,19 +463,19 @@ cd backend && python main.py
 
 **Terminal 2 — Celery Worker:**
 ```bash
-cd truthforge
+cd backend
 celery -A workers.celery_app worker --loglevel=info --pool=solo
 ```
 
 **Terminal 3 — Beat Scheduler:**
 ```bash
-cd truthforge
+cd backend
 celery -A workers.celery_app beat --loglevel=info
 ```
 
 **Terminal 4 — Flower Dashboard:**
 ```bash
-cd truthforge
+cd backend
 celery -A workers.celery_app flower --port=5555
 ```
 
@@ -434,19 +497,16 @@ Open Flower at `http://localhost:5555`
 ### Backend — Railway
 1. Connect GitHub repo to Railway
 2. Set Root Directory to `backend`
-3. Add all environment variables
-4. Railway auto-deploys on push
+3. Add all environment variables (including `AIML_API_KEY` and `AIML_BASE_URL`)
+4. Add `MISE_PYTHON_GITHUB_ATTESTATIONS=false` (Railway build-tool fix for Python 3.11.9)
+5. Railway auto-deploys on push
 
 ### Frontend — Vercel
 1. Connect GitHub repo to Vercel
 2. Set Root Directory to `frontend`
 3. Deploy — no environment variables needed
 
-### Update API URL
-After Railway deployment, update in `frontend/dashboard.html`:
-```javascript
-const API = 'https://your-railway-url.railway.app';
-```
+The frontend uses an auto-detect API URL (localhost when run locally, Railway in production), so no manual switching is required.
 
 ---
 
@@ -464,9 +524,9 @@ signal_result, esg_result, claimwire_result = await asyncio.gather(
 ```
 
 Each engine also runs its own internal searches in parallel:
-- SignalForge: 4 SERP searches simultaneously
-- GreenwashGuard: 4 SERP searches + Web Unlocker simultaneously
-- ClaimWire: 5 claim verifications simultaneously
+- SignalForge: parallel SERP searches (funding, hiring, executive, news, LinkedIn)
+- GreenwashGuard: parallel SERP searches + Web Unlocker
+- ClaimWire: parallel claim verifications
 
 **Result: 60-90 seconds total** (down from 5-6 minutes sequential)
 
@@ -487,6 +547,15 @@ Groq Llama 3.3-70B synthesizes all engine outputs into:
 - Use case recommendations (Sales / Investment / Vendor)
 - Biggest risk identified
 
+### SignalJobs Pipeline
+```
+Company name
+  → Bright Data SERP (LinkedIn, Indeed, Glassdoor, careers) in parallel
+  → BeautifulSoup cleans the raw HTML to text + links
+  → AI/ML API (GPT-4o) structures it into typed role listings
+  → Optional: POST /api/jobs/detail for a per-role AI brief
+```
+
 ---
 
 ## Features
@@ -495,9 +564,10 @@ Groq Llama 3.3-70B synthesizes all engine outputs into:
 - **3 Engine Cards** — Detailed breakdown per engine
 - **Claims Table** — Per-claim verdicts with evidence links
 - **Evidence Sources** — Direct links to sources found
+- **SignalJobs** — Multi-source hiring intelligence with per-role AI briefs
 - **Company Watchlist** — All analyzed companies with scores
 - **AI Chat** — Ask questions about any analyzed company
-- **Pitch Deck** — 10-slide interactive presentation
+- **Pitch Deck** — Interactive presentation
 - **Technical Whitepaper** — Full architecture documentation
 - **Background Workers** — Auto re-analysis every 6 hours
 - **Slack Alerts** — Score drop notifications
@@ -510,16 +580,16 @@ Groq Llama 3.3-70B synthesizes all engine outputs into:
 **Web Data UNLOCKED Hackathon 2026**
 by lablab.ai × Bright Data
 
-Built **solo** in **4.5 days** by Kanhaiya Kumar.
+Built **solo** in **under 5 days** by Kanhaiya Kumar.
 
 ---
 
 ## Connect
 
-- 🌐 **Live Demo:** [truthforge-iota.vercel.app](https://truthforge-iota.vercel.app)
-- 💻 **GitHub:** [github.com/Kanhaiya76618/truthforge](https://github.com/Kanhaiya76618/truthforge)
-- 💬 **Discord:** kanhaiya9650
-- 📊 **API Docs:** [truthforge-production.up.railway.app/docs](https://truthforge-production.up.railway.app/docs)
+- **Live Demo:** [truthforge-iota.vercel.app](https://truthforge-iota.vercel.app)
+- **GitHub:** [github.com/Kanhaiya76618/truthforge](https://github.com/Kanhaiya76618/truthforge)
+- **Discord:** kanhaiya9650
+- **API Docs:** [truthforge-production.up.railway.app/docs](https://truthforge-production.up.railway.app/docs)
 
 ---
 
