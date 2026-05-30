@@ -1,5 +1,6 @@
 # System Summary
 
+```
 User visits index.html (landing page)
       ↓
 Clicks Dashboard → dashboard.html
@@ -30,3 +31,4 @@ Beat Scheduler triggers all recurring tasks automatically
 Score drops 10+ points → Slack alert sent
       ↓
 Flower monitors all workers at :5555
+```
