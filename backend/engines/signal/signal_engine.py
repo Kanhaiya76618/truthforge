@@ -60,21 +60,23 @@ def parse_serp_html(html: str, limit: int = 10) -> List[Dict]:
 
 
 async def collect_signals(company_name: str) -> Dict:
-    """Gather raw signal data from 4 Bright Data SERP searches."""
+    """Gather raw signal data from 5 Bright Data SERP searches."""
     logger.info(f"Collecting signals for {company_name}...")
 
-    funding_html, hiring_html, exec_html, news_html = await asyncio.gather(
+    funding_html, hiring_html, exec_html, news_html, linkedin_html = await asyncio.gather(
         bright_data.search_funding(company_name),
         bright_data.search_hiring(company_name),
         bright_data.search_executive(company_name),
         bright_data.search_news(company_name),
+        bright_data.search_linkedin_jobs(company_name),
     )
 
     return {
-        "funding":   parse_serp_html(funding_html),
-        "hiring":    parse_serp_html(hiring_html),
-        "executive": parse_serp_html(exec_html),
-        "news":      parse_serp_html(news_html),
+        "funding":      parse_serp_html(funding_html),
+        "hiring":       parse_serp_html(hiring_html),
+        "executive":    parse_serp_html(exec_html),
+        "news":         parse_serp_html(news_html),
+        "linkedin_raw": linkedin_html,
     }
 
 
@@ -156,6 +158,43 @@ Return ONLY valid JSON (no markdown, no explanation):
         }
 
 
+async def analyze_linkedin_hiring(company_name: str, linkedin_html: str) -> dict:
+    """Extract structured hiring intel from LinkedIn SERP results via Groq."""
+    default = {
+        "hiring_velocity": "unknown",
+        "open_roles_estimate": 0,
+        "top_departments": [],
+        "tech_stack_signals": [],
+        "insight": ""
+    }
+    if not linkedin_html or len(linkedin_html) < 50:
+        return default
+    try:
+        prompt = f"""From these LinkedIn job search results for {company_name},
+return ONLY valid JSON (no markdown, no preamble):
+{{
+  "hiring_velocity": "high" | "medium" | "low",
+  "open_roles_estimate": <integer>,
+  "top_departments": ["dept1","dept2","dept3"],
+  "tech_stack_signals": ["tech1","tech2"],
+  "insight": "<one sentence hiring insight>"
+}}
+
+RESULTS:
+{linkedin_html[:3000]}"""
+        chat = groq_client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.3-70b-versatile",
+            temperature=0.3,
+            response_format={"type": "json_object"},
+        )
+        parsed = json.loads(chat.choices[0].message.content)
+        return {**default, **parsed}
+    except Exception as e:
+        logger.error(f"LinkedIn hiring analysis failed: {e}")
+        return default
+
+
 async def analyze_signals(company: Dict) -> Dict:
     """
     Main entry point for the Signal Engine.
@@ -174,7 +213,11 @@ async def analyze_signals(company: Dict) -> Dict:
         # 3. Calculate weighted score
         signal_score = calculate_signal_score(signals, ai_analysis)
 
-        # 4. Build response
+        # 4. LinkedIn hiring intel (purely additive — does not affect signal_score)
+        linkedin_html = signals.get("linkedin_raw", "")
+        linkedin_intel = await analyze_linkedin_hiring(company_name, linkedin_html)
+
+        # 5. Build response
         top_signals = []
         for category in ["funding", "hiring", "executive", "news"]:
             if signals[category]:
@@ -198,7 +241,8 @@ async def analyze_signals(company: Dict) -> Dict:
             "buying_intent_summary": ai_analysis["buying_intent_summary"],
             "recommendation":        ai_analysis["recommendation"],
             "evidence":              top_signals,
-            "total_signals_found":   sum(len(v) for v in signals.values()),
+            "total_signals_found":   sum(len(v) for v in signals.values() if isinstance(v, list)),
+            "linkedin_intel":        linkedin_intel,
         }
 
         logger.info(f"Signal Engine complete for {company_name}: score={signal_score}")
